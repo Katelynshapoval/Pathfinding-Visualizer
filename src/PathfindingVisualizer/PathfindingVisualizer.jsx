@@ -14,24 +14,25 @@ export default class PathfindingVisualizer extends Component {
       grid: [],
     };
   }
-
+  // Initializes the grid
   componentDidMount() {
     const grid = getInitialGrid();
     this.setState({ grid });
   }
-
+  // Displays the grid of nodes
   render() {
     const { grid } = this.state;
-    console.log(grid);
     return (
       <>
         <div className="grid">
           {grid.map((row, rowIdx) => {
             return (
               <div key={rowIdx}>
+                {/* Map through each node in the row */}
                 {row.map((node, nodeIdx) => {
                   const { row, col, isFinish, isStart } = node;
                   return (
+                    // Create a Node component for each node
                     <Node
                       key={nodeIdx}
                       col={col}
@@ -49,19 +50,23 @@ export default class PathfindingVisualizer extends Component {
     );
   }
 }
+// Generate the initial grid of nodes
 const getInitialGrid = () => {
   const grid = [];
+  // Iterate through rows
   for (let row = 0; row < 20; row++) {
     const currentRow = [];
+    // Iterate through columns
     for (let col = 0; col < 50; col++) {
+      // Create a node and add it to the current row
       currentRow.push(createNode(row, col));
     }
+    // Add the current row to the grid
     grid.push(currentRow);
   }
-  console.log("hoiiiii");
   return grid;
 };
-
+// Create a node with specified row and column indices.
 const createNode = (row, col) => {
   return {
     col,
