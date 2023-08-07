@@ -12,3 +12,9 @@
 .node-start {
   background-color: green;
 }
+.node-visited {
+  background-color: blue;
+}
+.node-shortest-path {
+  background-color: yellow;
+}
