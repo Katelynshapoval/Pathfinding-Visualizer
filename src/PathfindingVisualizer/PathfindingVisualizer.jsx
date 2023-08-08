@@ -20,6 +20,7 @@ export default class PathfindingVisualizer extends Component {
     const grid = getInitialGrid();
     this.setState({ grid });
   }
+
   visualizeDijkstra() {
     const { grid } = this.state;
     const startNode = grid[START_NODE_ROW][START_NODE_COL];
