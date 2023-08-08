@@ -13,12 +13,25 @@ export default class PathfindingVisualizer extends Component {
     super();
     this.state = {
       grid: [],
+      mouseIsPressed: false,
     };
   }
   // Initializes the grid
   componentDidMount() {
     const grid = getInitialGrid();
     this.setState({ grid });
+  }
+  handleMouseDown(row, col) {
+    const newGrid = getNewGridWithWallToggled(this.state.grid, row, col);
+    this.setState({ grid: newGrid, mouseIsPressed: true });
+  }
+  handleMouseEnter(row, col) {
+    if (!this.state.mouseIsPressed) return;
+    const newGrid = getNewGridWithWallToggled(this.state.grid, row, col);
+    this.setState({ grid: newGrid });
+  }
+  handleMouseUp() {
+    this.setState({ mouseIsPressed: false });
   }
 
   visualizeDijkstra() {
@@ -58,7 +71,7 @@ export default class PathfindingVisualizer extends Component {
   }
   // Displays the grid of nodes
   render() {
-    const { grid } = this.state;
+    const { grid, mouseIsPressed } = this.state;
     return (
       <>
         <button onClick={() => this.visualizeDijkstra()}>
@@ -70,7 +83,7 @@ export default class PathfindingVisualizer extends Component {
               <div key={rowIdx}>
                 {/* Map through each node in the row */}
                 {row.map((node, nodeIdx) => {
-                  const { row, col, isFinish, isStart } = node;
+                  const { row, col, isFinish, isStart, isWall } = node;
                   return (
                     // Create a Node component for each node
                     <Node
@@ -79,6 +92,13 @@ export default class PathfindingVisualizer extends Component {
                       row={row}
                       isFinish={isFinish}
                       isStart={isStart}
+                      isWall={isWall}
+                      mouseIsPressed={mouseIsPressed}
+                      onMouseDown={(row, col) => this.handleMouseDown(row, col)}
+                      onMouseEnter={(row, col) =>
+                        this.handleMouseEnter(row, col)
+                      }
+                      onMouseUp={() => this.handleMouseUp()}
                     ></Node>
                   );
                 })}
@@ -115,6 +135,18 @@ const createNode = (row, col) => {
     isFinish: row === FINISH_NODE_ROW && col === FINISH_NODE_COL,
     isVisited: false,
     distance: Infinity,
+    isWall: false,
     previousNode: null,
   };
+};
+
+const getNewGridWithWallToggled = (grid, row, col) => {
+  const newGrid = grid.slice();
+  const node = newGrid[row][col];
+  const newNode = {
+    ...node,
+    isWall: !node.isWall,
+  };
+  newGrid[row][col] = newNode;
+  return newGrid;
 };
