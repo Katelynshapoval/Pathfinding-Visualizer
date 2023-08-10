@@ -15,6 +15,8 @@ export default class PathfindingVisualizer extends Component {
     this.state = {
       grid: [],
       mouseIsPressed: false,
+      // To prevent user from adding walls while the algorithm is being animated
+      animationIsRunning: false,
     };
   }
   // Initializes the grid
@@ -23,8 +25,11 @@ export default class PathfindingVisualizer extends Component {
     this.setState({ grid });
   }
   handleMouseDown(row, col) {
-    const newGrid = getNewGridWithWallToggled(this.state.grid, row, col);
-    this.setState({ grid: newGrid, mouseIsPressed: true });
+    let { animationIsRunning } = this.state;
+    if (!animationIsRunning) {
+      const newGrid = getNewGridWithWallToggled(this.state.grid, row, col);
+      this.setState({ grid: newGrid, mouseIsPressed: true });
+    }
   }
   handleMouseEnter(row, col) {
     if (!this.state.mouseIsPressed) return;
@@ -40,7 +45,10 @@ export default class PathfindingVisualizer extends Component {
     const startNode = grid[START_NODE_ROW][START_NODE_COL];
     const finishNode = grid[FINISH_NODE_ROW][FINISH_NODE_COL];
     const visitedNodesInOrder = dijkstra(grid, startNode, finishNode);
-    const nodesInShortestPathOrder = getNodesInShortestPathOrder(finishNode);
+    const nodesInShortestPathOrder = getNodesInShortestPathOrder(
+      visitedNodesInOrder,
+      finishNode
+    );
     this.animateDjikstra(visitedNodesInOrder, nodesInShortestPathOrder);
   }
   visualizeAStar() {
@@ -48,9 +56,11 @@ export default class PathfindingVisualizer extends Component {
     const startNode = grid[START_NODE_ROW][START_NODE_COL];
     const finishNode = grid[FINISH_NODE_ROW][FINISH_NODE_COL];
     const visitedNodesInOrder = astar(grid, startNode, finishNode);
-    const nodesInShortestPathOrder = getNodesInShortestPathOrder(finishNode);
+    this.animateDjikstra(visitedNodesInOrder, visitedNodesInOrder);
+    // const nodesInShortestPathOrder = getNodesInShortestPathOrder(finishNode);
   }
   animateDjikstra(visitedNodesInOrder, nodesInShortestPathOrder) {
+    this.setState({ animationIsRunning: true });
     for (let i = 0; i <= visitedNodesInOrder.length; i++) {
       // After all visited nodes have been animated, animate the shortest path
       if (i === visitedNodesInOrder.length) {
@@ -76,6 +86,34 @@ export default class PathfindingVisualizer extends Component {
           "node node-shortest-path";
       }, 50 * i);
     }
+    this.setState({ animationIsRunning: false });
+  }
+  clearBoard() {
+    const grid = getInitialGrid();
+    // Loop through rows
+    for (let row = 0; row < 20; row++) {
+      // Loop through columns
+      for (let col = 0; col < 50; col++) {
+        // Check if the current cell is the starting node
+        if (col === START_NODE_COL && row === START_NODE_ROW) {
+          // Set the class name of the cell to indicate it's the starting node
+          document.getElementById(`node-${row}-${col}`).className =
+            "node node-start";
+        }
+        // Check if the current cell is the finishing node
+        else if (col === FINISH_NODE_COL && row === FINISH_NODE_ROW) {
+          // Set the class name of the cell to indicate it's the finishing node
+          document.getElementById(`node-${row}-${col}`).className =
+            "node node-finish";
+        }
+        // If the current cell is neither the starting nor finishing node
+        else {
+          // Set the class name of the cell to the default node style
+          document.getElementById(`node-${row}-${col}`).className = "node";
+        }
+      }
+      this.setState({ grid });
+    }
   }
   // Displays the grid of nodes
   render() {
@@ -88,6 +126,7 @@ export default class PathfindingVisualizer extends Component {
         <button onClick={() => this.visualizeAStar()}>
           Visualize A* Algorithm
         </button>
+        <button onClick={() => this.clearBoard()}>Clear Board</button>
         <div className="grid">
           {grid.map((row, rowIdx) => {
             return (
