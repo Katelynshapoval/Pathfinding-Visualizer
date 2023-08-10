@@ -100,6 +100,7 @@ function backtrackPath(currentNode) {
     // Move to the previous node
     curr = curr.previousNode;
   }
+  ret.push(curr);
   // Reverse the path to get it from start to finish
   return ret.reverse();
 }

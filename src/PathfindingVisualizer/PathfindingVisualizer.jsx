@@ -25,18 +25,17 @@ export default class PathfindingVisualizer extends Component {
     this.setState({ grid });
   }
   handleMouseDown(row, col) {
-    let { animationIsRunning } = this.state;
-    if (!animationIsRunning) {
-      const newGrid = getNewGridWithWallToggled(this.state.grid, row, col);
-      this.setState({ grid: newGrid, mouseIsPressed: true });
-    }
+    if (this.state.animationIsRunning) return;
+    const newGrid = getNewGridWithWallToggled(this.state.grid, row, col);
+    this.setState({ grid: newGrid, mouseIsPressed: true });
   }
   handleMouseEnter(row, col) {
-    if (!this.state.mouseIsPressed) return;
+    if (this.state.animationIsRunning || !this.state.mouseIsPressed) return;
     const newGrid = getNewGridWithWallToggled(this.state.grid, row, col);
     this.setState({ grid: newGrid });
   }
   handleMouseUp() {
+    if (this.state.animationIsRunning) return;
     this.setState({ mouseIsPressed: false });
   }
 
@@ -57,7 +56,6 @@ export default class PathfindingVisualizer extends Component {
     const finishNode = grid[FINISH_NODE_ROW][FINISH_NODE_COL];
     const visitedNodesInOrder = astar(grid, startNode, finishNode);
     this.animateDjikstra(visitedNodesInOrder, visitedNodesInOrder);
-    // const nodesInShortestPathOrder = getNodesInShortestPathOrder(finishNode);
   }
   animateDjikstra(visitedNodesInOrder, nodesInShortestPathOrder) {
     this.setState({ animationIsRunning: true });
@@ -72,8 +70,9 @@ export default class PathfindingVisualizer extends Component {
       // Animate each visited node
       setTimeout(() => {
         const node = visitedNodesInOrder[i];
-        document.getElementById(`node-${node.row}-${node.col}`).className =
-          "node node-visited";
+        document
+          .getElementById(`node-${node.row}-${node.col}`)
+          .classList.add("node-visited");
       }, 10 * i);
     }
   }
@@ -82,8 +81,9 @@ export default class PathfindingVisualizer extends Component {
     for (let i = 0; i < nodesInShortestPathOrder.length; i++) {
       setTimeout(() => {
         const node = nodesInShortestPathOrder[i];
-        document.getElementById(`node-${node.row}-${node.col}`).className =
-          "node node-shortest-path";
+        document
+          .getElementById(`node-${node.row}-${node.col}`)
+          .classList.add("node-shortest-path");
       }, 50 * i);
     }
     this.setState({ animationIsRunning: false });
