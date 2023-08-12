@@ -101,31 +101,40 @@ export default class PathfindingVisualizer extends Component {
     }
     this.setState({ animationIsRunning: false });
   }
-  clearBoard() {
-    const grid = getInitialGrid();
+  clearBoard(object) {
+    // const grid = getInitialGrid();
     // Loop through rows
     for (let row = 0; row < 20; row++) {
       // Loop through columns
       for (let col = 0; col < 50; col++) {
         // Check if the current cell is the starting node
-        if (col === START_NODE_COL && row === START_NODE_ROW) {
-          // Set the class name of the cell to indicate it's the starting node
-          document.getElementById(`node-${row}-${col}`).className =
-            "node node-start";
-        }
-        // Check if the current cell is the finishing node
-        else if (col === FINISH_NODE_COL && row === FINISH_NODE_ROW) {
-          // Set the class name of the cell to indicate it's the finishing node
-          document.getElementById(`node-${row}-${col}`).className =
-            "node node-finish";
-        }
-        // If the current cell is neither the starting nor finishing node
-        else {
-          // Set the class name of the cell to the default node style
-          document.getElementById(`node-${row}-${col}`).className = "node";
+        if (
+          !(col === START_NODE_COL && row === START_NODE_ROW) ||
+          (!(col === FINISH_NODE_COL && row === FINISH_NODE_ROW) &&
+            object !== "board" &&
+            object !== "active")
+        ) {
+          if (object === "board") {
+            // Set the class name of the cell to the default node style
+            document.getElementById(`node-${row}-${col}`).className = "node";
+          } else if (object === "walls") {
+            document
+              .getElementById(`node-${row}-${col}`)
+              .classList.remove("node-wall");
+          } else if (object === "path") {
+            document
+              .getElementById(`node-${row}-${col}`)
+              .classList.remove("node-visited");
+            document
+              .getElementById(`node-${row}-${col}`)
+              .classList.remove("node-shortest-path");
+            document
+              .getElementById(`node-${row}-${col}`)
+              .classList.remove("active");
+          }
         }
       }
-      this.setState({ grid });
+      // this.setState({ grid });
     }
   }
   // Displays the grid of nodes
@@ -139,7 +148,12 @@ export default class PathfindingVisualizer extends Component {
         <button onClick={() => this.visualizeAStar()}>
           Visualize A* Algorithm
         </button>
-        <button onClick={() => this.clearBoard()}>Clear Board</button>
+        {/* Cleares everything anf returns nodes back to original position */}
+        <button onClick={() => this.clearBoard("board")}>Clear Board</button>
+        {/* Cleans path and walls */}
+        <button onClick={() => this.clearBoard("walls")}>Clear Walls</button>
+        {/* Cleans just path */}
+        <button onClick={() => this.clearBoard("path")}>Clear Path</button>
         <div className="grid">
           {grid.map((row, rowIdx) => {
             return (
