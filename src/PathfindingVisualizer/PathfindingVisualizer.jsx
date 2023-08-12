@@ -84,6 +84,19 @@ export default class PathfindingVisualizer extends Component {
         document
           .getElementById(`node-${node.row}-${node.col}`)
           .classList.add("node-shortest-path");
+        // Adds an arrow to the last shortest path node
+        document
+          .getElementById(`node-${node.row}-${node.col}`)
+          .classList.add("active");
+        // Removes the arrow
+        setTimeout(() => {
+          // If we're on the finishNode don't remove the class so background-image is an arrow
+          if (i !== nodesInShortestPathOrder.length - 1) {
+            document
+              .getElementById(`node-${node.row}-${node.col}`)
+              .classList.remove("active");
+          }
+        }, 50);
       }, 50 * i);
     }
     this.setState({ animationIsRunning: false });
