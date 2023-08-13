@@ -4,10 +4,10 @@ import "./PathfindingVisualizer.css";
 import { dijkstra, getNodesInShortestPathOrder } from "../algorithms/dijkstra";
 import { astar } from "../algorithms/astar";
 
-const START_NODE_ROW = 10;
-const START_NODE_COL = 15;
-const FINISH_NODE_ROW = 10;
-const FINISH_NODE_COL = 35;
+let START_NODE_COL = 15;
+let FINISH_NODE_ROW = 10;
+let START_NODE_ROW = 10;
+let FINISH_NODE_COL = 35;
 
 export default class PathfindingVisualizer extends Component {
   constructor() {
@@ -17,6 +17,7 @@ export default class PathfindingVisualizer extends Component {
       mouseIsPressed: false,
       // To prevent user from adding walls while the algorithm is being animated
       animationIsRunning: false,
+      dragNode: false,
     };
   }
   // Initializes the grid
@@ -24,19 +25,34 @@ export default class PathfindingVisualizer extends Component {
     const grid = getInitialGrid();
     this.setState({ grid });
   }
-  handleMouseDown(row, col) {
+  handleMouseDown(e, row, col) {
     if (this.state.animationIsRunning) return;
-    const newGrid = getNewGridWithWallToggled(this.state.grid, row, col);
-    this.setState({ grid: newGrid, mouseIsPressed: true });
+    e.preventDefault();
+    console.log("press");
+    if (this.state.animationIsRunning) return;
+    if (row === START_NODE_ROW && col === START_NODE_COL) {
+      this.setState({ dragNode: true });
+    } else if (!this.state.dragNode) {
+      const newGrid = getNewGridWithWallToggled(this.state.grid, row, col);
+      this.setState({ grid: newGrid });
+    }
+    this.setState({ mouseIsPressed: true });
   }
-  handleMouseEnter(row, col) {
+  handleMouseEnter(e, row, col) {
+    // e.preventDefault();
     if (this.state.animationIsRunning || !this.state.mouseIsPressed) return;
-    const newGrid = getNewGridWithWallToggled(this.state.grid, row, col);
-    this.setState({ grid: newGrid });
+    if (this.state.dragNode) {
+      let grid = move(this.state.grid, row, col);
+      this.setState({ grid: grid });
+    } else {
+      const newGrid = getNewGridWithWallToggled(this.state.grid, row, col);
+      this.setState({ grid: newGrid });
+    }
   }
   handleMouseUp() {
     if (this.state.animationIsRunning) return;
     this.setState({ mouseIsPressed: false });
+    this.setState({ dragNode: false });
   }
 
   visualizeDijkstra() {
@@ -101,42 +117,6 @@ export default class PathfindingVisualizer extends Component {
     }
     this.setState({ animationIsRunning: false });
   }
-  clearBoard(object) {
-    // const grid = getInitialGrid();
-    // Loop through rows
-    for (let row = 0; row < 20; row++) {
-      // Loop through columns
-      for (let col = 0; col < 50; col++) {
-        // Check if the current cell is the starting node
-        if (
-          !(col === START_NODE_COL && row === START_NODE_ROW) ||
-          (!(col === FINISH_NODE_COL && row === FINISH_NODE_ROW) &&
-            object !== "board" &&
-            object !== "active")
-        ) {
-          if (object === "board") {
-            // Set the class name of the cell to the default node style
-            document.getElementById(`node-${row}-${col}`).className = "node";
-          } else if (object === "walls") {
-            document
-              .getElementById(`node-${row}-${col}`)
-              .classList.remove("node-wall");
-          } else if (object === "path") {
-            document
-              .getElementById(`node-${row}-${col}`)
-              .classList.remove("node-visited");
-            document
-              .getElementById(`node-${row}-${col}`)
-              .classList.remove("node-shortest-path");
-            document
-              .getElementById(`node-${row}-${col}`)
-              .classList.remove("active");
-          }
-        }
-      }
-      // this.setState({ grid });
-    }
-  }
   // Displays the grid of nodes
   render() {
     const { grid, mouseIsPressed } = this.state;
@@ -149,18 +129,31 @@ export default class PathfindingVisualizer extends Component {
           Visualize A* Algorithm
         </button>
         {/* Cleares everything anf returns nodes back to original position */}
-        <button onClick={() => this.clearBoard("board")}>Clear Board</button>
+        <button
+          onClick={() => this.setState({ grid: clearBoard(grid, "board") })}
+        >
+          Clear Board
+        </button>
         {/* Cleans path and walls */}
-        <button onClick={() => this.clearBoard("walls")}>Clear Walls</button>
+        <button
+          onClick={() => this.setState({ grid: clearBoard(grid, "walls") })}
+        >
+          Clear Walls
+        </button>
         {/* Cleans just path */}
-        <button onClick={() => this.clearBoard("path")}>Clear Path</button>
+        <button
+          onClick={() => this.setState({ grid: clearBoard(grid, "path") })}
+        >
+          Clear Path
+        </button>
         <div className="grid">
           {grid.map((row, rowIdx) => {
             return (
               <div key={rowIdx}>
                 {/* Map through each node in the row */}
                 {row.map((node, nodeIdx) => {
-                  const { row, col, isFinish, isStart, isWall } = node;
+                  const { row, col, isFinish, isStart, isWall, isHovered } =
+                    node;
                   return (
                     // Create a Node component for each node
                     <Node
@@ -171,11 +164,10 @@ export default class PathfindingVisualizer extends Component {
                       isStart={isStart}
                       isWall={isWall}
                       mouseIsPressed={mouseIsPressed}
-                      onMouseDown={(row, col) => this.handleMouseDown(row, col)}
-                      onMouseEnter={(row, col) =>
-                        this.handleMouseEnter(row, col)
-                      }
+                      // onMouseLeave={() => this.hover(false, row, col)}
                       onMouseUp={() => this.handleMouseUp()}
+                      onMouseDown={(e) => this.handleMouseDown(e, row, col)}
+                      onMouseEnter={(e) => this.handleMouseEnter(e, row, col)}
                     ></Node>
                   );
                 })}
@@ -213,6 +205,7 @@ const createNode = (row, col) => {
     isVisited: false,
     distance: Infinity,
     isWall: false,
+    isHovered: false,
     previousNode: null,
     f: Infinity,
     g: Infinity,
@@ -229,4 +222,58 @@ const getNewGridWithWallToggled = (grid, row, col) => {
   };
   newGrid[row][col] = newNode;
   return newGrid;
+};
+
+const move = (grid, row, col) => {
+  const newGrid = grid.slice();
+  const el = newGrid[START_NODE_ROW][START_NODE_COL];
+  el.isStart = false;
+  newGrid[START_NODE_ROW][START_NODE_COL] = el;
+  newGrid[row][col].isStart = true;
+  START_NODE_COL = col;
+  START_NODE_ROW = row;
+  // this.setState({ grid: grid });
+  return newGrid;
+};
+
+const clearBoard = (oldGrid, object) => {
+  // Loop through rows
+  // const grid = this.state.grid.slice();
+  const grid = oldGrid.slice();
+  for (let row = 0; row < 20; row++) {
+    // Loop through columns
+    for (let col = 0; col < 50; col++) {
+      if (object === "board") {
+        if (col === START_NODE_COL && row === START_NODE_ROW) {
+          document.getElementById(`node-${row}-${col}`).className =
+            "node node-start";
+          grid[row][col].isStart = false;
+          START_NODE_COL = 15;
+          START_NODE_ROW = 10;
+          grid[START_NODE_ROW][START_NODE_COL].isStart = true;
+        } else if (col === FINISH_NODE_COL && row === FINISH_NODE_ROW) {
+          document.getElementById(`node-${row}-${col}`).className =
+            "node node-finish";
+        } else {
+          // Set the class name of the cell to the default node style
+          document.getElementById(`node-${row}-${col}`).className = "node";
+        }
+      } else if (object === "walls") {
+        document
+          .getElementById(`node-${row}-${col}`)
+          .classList.remove("node-wall");
+      } else if (object === "path") {
+        document
+          .getElementById(`node-${row}-${col}`)
+          .classList.remove("node-visited");
+        document
+          .getElementById(`node-${row}-${col}`)
+          .classList.remove("node-shortest-path");
+        document
+          .getElementById(`node-${row}-${col}`)
+          .classList.remove("active");
+      }
+    }
+  }
+  return grid;
 };

@@ -11,7 +11,9 @@
   background-repeat: no-repeat;
   background-position: center;
 }
-
+.node-hover {
+  background-color: red;
+}
 .node-start {
   background-image: url(arrow-right.svg);
 }
