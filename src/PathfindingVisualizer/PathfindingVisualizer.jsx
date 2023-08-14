@@ -42,7 +42,7 @@ export default class PathfindingVisualizer extends Component {
     // e.preventDefault();
     if (this.state.animationIsRunning || !this.state.mouseIsPressed) return;
     if (this.state.dragNode) {
-      let grid = move(this.state.grid, row, col);
+      let grid = move(this.state.grid, row, col, this.state.animationIsRunning);
       this.setState({ grid: grid });
     } else {
       const newGrid = getNewGridWithWallToggled(this.state.grid, row, col);
@@ -51,8 +51,7 @@ export default class PathfindingVisualizer extends Component {
   }
   handleMouseUp() {
     if (this.state.animationIsRunning) return;
-    this.setState({ mouseIsPressed: false });
-    this.setState({ dragNode: false });
+    this.setState({ mouseIsPressed: false, dragNode: false });
   }
 
   visualizeDijkstra() {
@@ -74,6 +73,8 @@ export default class PathfindingVisualizer extends Component {
     this.animateDjikstra(visitedNodesInOrder, visitedNodesInOrder);
   }
   animateDjikstra(visitedNodesInOrder, nodesInShortestPathOrder) {
+    if (this.state.animationIsRunning) return;
+    clearBoard(this.state.grid, "path", this.state.animationIsRunning);
     this.setState({ animationIsRunning: true });
     for (let i = 0; i <= visitedNodesInOrder.length; i++) {
       // After all visited nodes have been animated, animate the shortest path
@@ -119,7 +120,7 @@ export default class PathfindingVisualizer extends Component {
   }
   // Displays the grid of nodes
   render() {
-    const { grid, mouseIsPressed } = this.state;
+    const { grid, mouseIsPressed, animationIsRunning } = this.state;
     return (
       <>
         <button onClick={() => this.visualizeDijkstra()}>
@@ -130,19 +131,31 @@ export default class PathfindingVisualizer extends Component {
         </button>
         {/* Cleares everything anf returns nodes back to original position */}
         <button
-          onClick={() => this.setState({ grid: clearBoard(grid, "board") })}
+          onClick={() =>
+            this.setState({
+              grid: clearBoard(grid, "board", animationIsRunning),
+            })
+          }
         >
           Clear Board
         </button>
         {/* Cleans path and walls */}
         <button
-          onClick={() => this.setState({ grid: clearBoard(grid, "walls") })}
+          onClick={() =>
+            this.setState({
+              grid: clearBoard(grid, "walls", animationIsRunning),
+            })
+          }
         >
           Clear Walls
         </button>
         {/* Cleans just path */}
         <button
-          onClick={() => this.setState({ grid: clearBoard(grid, "path") })}
+          onClick={() =>
+            this.setState({
+              grid: clearBoard(grid, "path", animationIsRunning),
+            })
+          }
         >
           Clear Path
         </button>
@@ -224,45 +237,69 @@ const getNewGridWithWallToggled = (grid, row, col) => {
   return newGrid;
 };
 
-const move = (grid, row, col) => {
+// Define a function to move the starting node within a grid to a new position specified by the row and column indices.
+const move = (grid, row, col, animationIsRunning) => {
+  clearBoard(grid, "path", animationIsRunning);
+  // Create a copy of the grid array using the slice() method to avoid modifying the original grid directly.
   const newGrid = grid.slice();
+  // Get a reference to the element representing the starting node in the original grid.
   const el = newGrid[START_NODE_ROW][START_NODE_COL];
+  // Set the "isStart" property of the current starting node element to false, indicating it is no longer the starting node.
   el.isStart = false;
+  // Update the newGrid array to reflect the change in the starting node's status.
   newGrid[START_NODE_ROW][START_NODE_COL] = el;
+  // Set the "isStart" property of the target element (where the starting node will be moved to) to true.
   newGrid[row][col].isStart = true;
+  // Update the global START_NODE_COL and START_NODE_ROW variables to store the new starting node's column and row indices.
   START_NODE_COL = col;
   START_NODE_ROW = row;
-  // this.setState({ grid: grid });
+  // Return the updated newGrid array with the starting node moved to the new position.
   return newGrid;
 };
 
-const clearBoard = (oldGrid, object) => {
-  // Loop through rows
-  // const grid = this.state.grid.slice();
+// Define a function to clear the board by updating the grid and classes of nodes based on the specified object type.
+
+const clearBoard = (oldGrid, object, animationIsRunning) => {
+  if (animationIsRunning) return oldGrid;
+  // Create a copy of the oldGrid array to avoid modifying the original grid directly.
   const grid = oldGrid.slice();
+
+  // Loop through rows
   for (let row = 0; row < 20; row++) {
     // Loop through columns
     for (let col = 0; col < 50; col++) {
       if (object === "board") {
+        // If the object type is "board"
         if (col === START_NODE_COL && row === START_NODE_ROW) {
+          // If the current cell is the original starting node cell
+          // Set its class name to indicate the starting node style
           document.getElementById(`node-${row}-${col}`).className =
             "node node-start";
+          // Update the grid to reflect that the current cell is no longer the starting node
           grid[row][col].isStart = false;
+          // Reset the global START_NODE_COL and START_NODE_ROW to their default values
           START_NODE_COL = 15;
           START_NODE_ROW = 10;
+          // Update the grid to make the new starting node cell the actual starting node
           grid[START_NODE_ROW][START_NODE_COL].isStart = true;
         } else if (col === FINISH_NODE_COL && row === FINISH_NODE_ROW) {
+          // If the current cell is the finish node cell
+          // Set its class name to indicate the finish node style
           document.getElementById(`node-${row}-${col}`).className =
             "node node-finish";
         } else {
-          // Set the class name of the cell to the default node style
+          // For all other cells, set the class name to the default node style
           document.getElementById(`node-${row}-${col}`).className = "node";
         }
       } else if (object === "walls") {
+        // If the object type is "walls"
+        // Remove the "node-wall" class to clear wall styling from the current cell
         document
           .getElementById(`node-${row}-${col}`)
           .classList.remove("node-wall");
       } else if (object === "path") {
+        // If the object type is "path"
+        // Remove classes related to path visualization from the current cell
         document
           .getElementById(`node-${row}-${col}`)
           .classList.remove("node-visited");

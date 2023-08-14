@@ -21,6 +21,9 @@
 .node-visited {
   animation-name: visitedAnimation;
   animation-duration: 1.5s;
+}
+.node-visited,
+.node-wall {
   animation-timing-function: ease-out;
   animation-delay: 0;
   animation-direction: alternate;
@@ -31,6 +34,19 @@
 
 .node-wall {
   background-color: rgb(12, 53, 71);
+  animation-name: nodewall;
+  animation-duration: 0.3s;
+}
+
+@keyframes nodewall {
+  0% {
+    transform: scale(0.3);
+    border-radius: 100%;
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 @keyframes visitedAnimation {
