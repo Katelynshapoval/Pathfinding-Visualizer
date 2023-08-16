@@ -3,9 +3,6 @@ import React, { Component } from "react";
 import "./Node.css";
 
 export default class Node extends Component {
-  constructor(props) {
-    super(props);
-  }
   render() {
     const {
       row,
@@ -24,13 +21,12 @@ export default class Node extends Component {
       : isWall
       ? "node-wall"
       : "";
-
     return (
       <div
         id={`node-${row}-${col}`}
         className={`node ${extraClassName}`}
-        onMouseDown={(e) => onMouseDown(e, row, col)}
-        onMouseEnter={(e) => onMouseEnter(e, row, col)}
+        onMouseDown={() => onMouseDown(row, col)}
+        onMouseEnter={() => onMouseEnter(row, col)}
         onMouseUp={() => onMouseUp()}
       ></div>
     );
