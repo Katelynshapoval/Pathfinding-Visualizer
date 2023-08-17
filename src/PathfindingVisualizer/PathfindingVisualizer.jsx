@@ -302,8 +302,12 @@ const clearBoard = (oldGrid, object, animationIsRunning) => {
   // If the object to clear is the entire board, reset the grid to its initial state and reset the start node's position.
   if (object === "board") {
     grid = getInitialGrid();
-    START_NODE_COL = 15; // Resetting the column of the start node
-    START_NODE_ROW = 10; // Resetting the row of the start node
+    // Resetting the startNode
+    START_NODE_COL = 15;
+    START_NODE_ROW = 10;
+    // Resetting the finishNode
+    FINISH_NODE_ROW = 10;
+    FINISH_NODE_COL = 35;
   }
   // Loop through rows
   for (let row = 0; row < 20; row++) {
