@@ -22,6 +22,9 @@
   animation-name: visitedAnimation;
   animation-duration: 1.5s;
 }
+.node-visited-not-animated {
+  background-color: rgba(0, 190, 218, 0.75);
+}
 .node-visited,
 .node-wall {
   animation-timing-function: ease-out;
@@ -70,6 +73,10 @@
     background-color: rgba(0, 190, 218, 0.75);
   }
 }
+.node-shortest-path,
+.node-shortest-path-not-animated {
+  background-color: rgb(255, 254, 106);
+}
 .node-shortest-path {
   animation-name: shortestPath;
   animation-duration: 1.5s;
@@ -79,8 +86,6 @@
   animation-iteration-count: 1;
   animation-fill-mode: forwards;
   animation-play-state: running;
-
-  background-color: rgb(255, 254, 106);
 }
 
 @keyframes shortestPath {

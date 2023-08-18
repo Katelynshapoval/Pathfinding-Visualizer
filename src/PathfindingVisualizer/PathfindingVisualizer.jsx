@@ -18,6 +18,7 @@ export default class PathfindingVisualizer extends Component {
       // To prevent user from adding walls while the algorithm is being animated
       animationIsRunning: false,
       dragNode: false,
+      animationIsCompleted: [false, ""],
     };
   }
   // Initializes the grid
@@ -47,14 +48,23 @@ export default class PathfindingVisualizer extends Component {
     // e.preventDefault();
     if (this.state.animationIsRunning || !this.state.mouseIsPressed) return;
     if (this.state.dragNode[0]) {
-      let grid = move(
+      let grid = this.move(
         this.state.grid,
         row,
         col,
         this.state.animationIsRunning,
-        this.state.dragNode
+        this.state.dragNode,
+        this.state.animationIsCompleted[0]
       );
-      this.setState({ grid: grid });
+      this.setState({ grid: grid }, () => {
+        if (this.state.animationIsCompleted[0]) {
+          if (this.state.animationIsCompleted[1] === "dijkstra") {
+            this.visualizeDijkstra();
+          } else if (this.state.animationIsCompleted[1] === "astar") {
+            this.visualizeAStar();
+          }
+        }
+      });
     } else {
       const newGrid = getNewGridWithWallToggled(this.state.grid, row, col);
       this.setState({ grid: newGrid });
@@ -75,61 +85,149 @@ export default class PathfindingVisualizer extends Component {
       visitedNodesInOrder,
       finishNode
     );
-    this.animateDjikstra(visitedNodesInOrder, nodesInShortestPathOrder);
+    this.animateDjikstra(
+      visitedNodesInOrder,
+      nodesInShortestPathOrder,
+      "dijkstra"
+    );
   }
   visualizeAStar() {
     const { grid } = this.state;
     const startNode = grid[START_NODE_ROW][START_NODE_COL];
     const finishNode = grid[FINISH_NODE_ROW][FINISH_NODE_COL];
     const visitedNodesInOrder = astar(grid, startNode, finishNode);
-    this.animateDjikstra(visitedNodesInOrder, visitedNodesInOrder);
+    this.animateDjikstra(visitedNodesInOrder, visitedNodesInOrder, "astar");
+    // this.setState({ animationIsCompleted: true });
   }
-  animateDjikstra(visitedNodesInOrder, nodesInShortestPathOrder) {
+  animateDjikstra(visitedNodesInOrder, nodesInShortestPathOrder, algorithm) {
     if (this.state.animationIsRunning) return;
-    clearBoard(this.state.grid, "path", this.state.animationIsRunning);
-    this.setState({ animationIsRunning: true });
+    // clearBoard(this.state.grid, "path", this.state.animationIsRunning);
+    this.setState({
+      grid: clearBoard(this.state.grid, "path", this.state.animationIsRunning),
+      animationIsRunning: true,
+    });
     for (let i = 0; i <= visitedNodesInOrder.length; i++) {
       // After all visited nodes have been animated, animate the shortest path
       if (i === visitedNodesInOrder.length) {
-        setTimeout(() => {
-          this.animateShortestPath(nodesInShortestPathOrder);
-        }, 10 * i);
+        if (
+          this.state.animationIsCompleted[0] === false ||
+          this.state.animationIsCompleted[1] !== algorithm
+        ) {
+          setTimeout(() => {
+            this.animateShortestPath(nodesInShortestPathOrder, algorithm);
+          }, 10 * i);
+        } else {
+          this.animateShortestPath(nodesInShortestPathOrder, algorithm);
+        }
         return;
       }
       // Animate each visited node
-      setTimeout(() => {
-        const node = visitedNodesInOrder[i];
+      const node = visitedNodesInOrder[i];
+      if (
+        this.state.animationIsCompleted[0] === false ||
+        this.state.animationIsCompleted[1] !== algorithm
+      ) {
+        setTimeout(() => {
+          document
+            .getElementById(`node-${node.row}-${node.col}`)
+            .classList.add("node-visited");
+        }, 10 * i);
+      } else {
         document
           .getElementById(`node-${node.row}-${node.col}`)
-          .classList.add("node-visited");
-      }, 10 * i);
+          .classList.add("node-visited-not-animated");
+      }
     }
   }
+
   // Function to animate the shortest path after Dijkstra's algorithm
-  animateShortestPath(nodesInShortestPathOrder) {
+  animateShortestPath(nodesInShortestPathOrder, algorithm) {
+    // if (this.state.animationIsCompleted === false) {
     for (let i = 0; i < nodesInShortestPathOrder.length; i++) {
-      setTimeout(() => {
-        const node = nodesInShortestPathOrder[i];
+      const node = nodesInShortestPathOrder[i];
+      if (
+        this.state.animationIsCompleted[0] === false ||
+        this.state.animationIsCompleted[1] !== algorithm
+      ) {
+        setTimeout(() => {
+          document
+            .getElementById(`node-${node.row}-${node.col}`)
+            .classList.add("node-shortest-path");
+          // Adds an arrow to the last shortest path node
+          document
+            .getElementById(`node-${node.row}-${node.col}`)
+            .classList.add("active");
+          // Removes the arrow
+          setTimeout(() => {
+            // If we're on the finishNode don't remove the class so background-image is an arrow
+            if (i !== nodesInShortestPathOrder.length - 1) {
+              document
+                .getElementById(`node-${node.row}-${node.col}`)
+                .classList.remove("active");
+            }
+          }, 50);
+        }, 50 * i);
+      } else {
         document
           .getElementById(`node-${node.row}-${node.col}`)
-          .classList.add("node-shortest-path");
+          .classList.add("node-shortest-path-not-animated");
         // Adds an arrow to the last shortest path node
         document
           .getElementById(`node-${node.row}-${node.col}`)
           .classList.add("active");
         // Removes the arrow
-        setTimeout(() => {
-          // If we're on the finishNode don't remove the class so background-image is an arrow
-          if (i !== nodesInShortestPathOrder.length - 1) {
-            document
-              .getElementById(`node-${node.row}-${node.col}`)
-              .classList.remove("active");
-          }
-        }, 50);
-      }, 50 * i);
+        // If we're on the finishNode don't remove the class so background-image is an arrow
+        if (i !== nodesInShortestPathOrder.length - 1) {
+          document
+            .getElementById(`node-${node.row}-${node.col}`)
+            .classList.remove("active");
+        }
+      }
     }
-    this.setState({ animationIsRunning: false });
+    this.setState({
+      animationIsRunning: false,
+      animationIsCompleted: [true, algorithm],
+    });
   }
+  // Define a function to move the starting node within a grid to a new position specified by the row and column indices.
+  move = (
+    grid,
+    row,
+    col,
+    animationIsRunning,
+    dragNode,
+    animationIsCompleted
+  ) => {
+    // clearBoard(grid, "path", animationIsRunning);
+
+    // Create a copy of the grid array using the slice() method to avoid modifying the original grid directly.
+    let newGrid = grid.slice();
+    if (dragNode[1] === "start") {
+      // Get a reference to the element representing the starting node in the original grid.
+      const el = newGrid[START_NODE_ROW][START_NODE_COL];
+      // Set the "isStart" property of the current starting node element to false, indicating it is no longer the starting node.
+      el.isStart = false;
+      // Update the newGrid array to reflect the change in the starting node's status.
+      newGrid[START_NODE_ROW][START_NODE_COL] = el;
+      // Set the "isStart" property of the target element (where the starting node will be moved to) to true.
+      newGrid[row][col].isStart = true;
+      // Update the global START_NODE_COL and START_NODE_ROW variables to store the new starting node's column and row indices.
+      START_NODE_COL = col;
+      START_NODE_ROW = row;
+    } else if (dragNode[1] === "finish") {
+      const el = newGrid[FINISH_NODE_ROW][FINISH_NODE_COL];
+      el.isFinish = false;
+      newGrid[FINISH_NODE_ROW][FINISH_NODE_COL] = el;
+      newGrid[row][col].isFinish = true;
+      FINISH_NODE_COL = col;
+      FINISH_NODE_ROW = row;
+    }
+
+    // Return the updated newGrid array with the starting node moved to the new position.
+    // return newGrid;
+
+    return newGrid;
+  };
   // Displays the grid of nodes
   render() {
     const { grid, mouseIsPressed, animationIsRunning } = this.state;
@@ -143,27 +241,30 @@ export default class PathfindingVisualizer extends Component {
         </button>
         {/* Cleares everything anf returns nodes back to original position */}
         <button
-          onClick={() =>
+          onClick={() => {
             this.setState({
               grid: clearBoard(grid, "board", animationIsRunning),
-            })
-          }
+              animationIsCompleted: [false, ""],
+            });
+            // this.setState({  });
+          }}
         >
           Clear Board
         </button>
         {/* Cleans path and walls */}
         <button
-          onClick={() =>
+          onClick={() => {
             this.setState({
               grid: clearBoard(grid, "walls", animationIsRunning),
-            })
-          }
+            });
+            this.setState({ animationIsCompleted: [false, ""] });
+          }}
         >
           Clear Walls
         </button>
         {/* Cleans just path */}
         <button
-          onClick={() =>
+          onClick={() => {
             this.setState({
               grid: clearBoard(
                 grid,
@@ -171,8 +272,9 @@ export default class PathfindingVisualizer extends Component {
                 animationIsRunning,
                 this.state.dragNode
               ),
-            })
-          }
+            });
+            this.setState({ animationIsCompleted: [false, ""] });
+          }}
         >
           Clear Path
         </button>
@@ -263,36 +365,6 @@ const getNewGridWithWallToggled = (grid, row, col) => {
   return newGrid;
 };
 
-// Define a function to move the starting node within a grid to a new position specified by the row and column indices.
-const move = (grid, row, col, animationIsRunning, node) => {
-  clearBoard(grid, "path", animationIsRunning);
-  // Create a copy of the grid array using the slice() method to avoid modifying the original grid directly.
-  const newGrid = grid.slice();
-  if (node[1] === "start") {
-    // Get a reference to the element representing the starting node in the original grid.
-    const el = newGrid[START_NODE_ROW][START_NODE_COL];
-    // Set the "isStart" property of the current starting node element to false, indicating it is no longer the starting node.
-    el.isStart = false;
-    // Update the newGrid array to reflect the change in the starting node's status.
-    newGrid[START_NODE_ROW][START_NODE_COL] = el;
-    // Set the "isStart" property of the target element (where the starting node will be moved to) to true.
-    newGrid[row][col].isStart = true;
-    // Update the global START_NODE_COL and START_NODE_ROW variables to store the new starting node's column and row indices.
-    START_NODE_COL = col;
-    START_NODE_ROW = row;
-  } else if (node[1] === "finish") {
-    const el = newGrid[FINISH_NODE_ROW][FINISH_NODE_COL];
-    el.isFinish = false;
-    newGrid[FINISH_NODE_ROW][FINISH_NODE_COL] = el;
-    newGrid[row][col].isFinish = true;
-    FINISH_NODE_COL = col;
-    FINISH_NODE_ROW = row;
-  }
-
-  // Return the updated newGrid array with the starting node moved to the new position.
-  return newGrid;
-};
-
 // This function clears parts of the grid based on the provided parameters.
 const clearBoard = (oldGrid, object, animationIsRunning) => {
   // If an animation is currently running, do not modify the grid and just return the old grid.
@@ -301,7 +373,7 @@ const clearBoard = (oldGrid, object, animationIsRunning) => {
   let grid = oldGrid.slice();
   // If the object to clear is the entire board, reset the grid to its initial state and reset the start node's position.
   if (object === "board") {
-    grid = getInitialGrid();
+    // grid = getInitialGrid();
     // Resetting the startNode
     START_NODE_COL = 15;
     START_NODE_ROW = 10;
@@ -320,6 +392,8 @@ const clearBoard = (oldGrid, object, animationIsRunning) => {
       // If the object to clear is path, and the current node is not a wall, reset it to a new non-wall node.
       else if (object === "path" && grid[row][col].isWall === false) {
         grid[row][col] = createNode(row, col);
+      } else if (object === "board") {
+        grid[row][col] = createNode(row, col);
       }
       // Remove visual classes from the corresponding DOM element representing the node.
       document
@@ -329,6 +403,12 @@ const clearBoard = (oldGrid, object, animationIsRunning) => {
         .getElementById(`node-${row}-${col}`)
         .classList.remove("node-shortest-path");
       document.getElementById(`node-${row}-${col}`).classList.remove("active");
+      document
+        .getElementById(`node-${row}-${col}`)
+        .classList.remove("node-visited-not-animated");
+      document
+        .getElementById(`node-${row}-${col}`)
+        .classList.remove("node-shortest-path-not-animated");
     }
   }
   // Return the modified grid after clearing the specified object.
