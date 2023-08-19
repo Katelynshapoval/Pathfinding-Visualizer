@@ -142,41 +142,47 @@ export default class PathfindingVisualizer extends Component {
 
   // Function to animate the shortest path after Dijkstra's algorithm
   animateShortestPath(nodesInShortestPathOrder, algorithm) {
-    // if (this.state.animationIsCompleted === false) {
+    // Check if animation is not completed or if the algorithm has changed
+    // (animationIsCompleted[0] corresponds to completion status, animationIsCompleted[1] to algorithm)
     for (let i = 0; i < nodesInShortestPathOrder.length; i++) {
       const node = nodesInShortestPathOrder[i];
       if (
-        this.state.animationIsCompleted[0] === false ||
-        this.state.animationIsCompleted[1] !== algorithm
+        this.state.animationIsCompleted[0] === false || // If animation is not completed
+        this.state.animationIsCompleted[1] !== algorithm // Or if the algorithm has changed
       ) {
+        // Delay the addition of classes to create an animation effect
         setTimeout(() => {
+          // Add class to mark this node as part of the shortest path
           document
             .getElementById(`node-${node.row}-${node.col}`)
             .classList.add("node-shortest-path");
-          // Adds an arrow to the last shortest path node
+
+          // Add an arrow to the last shortest path node
           document
             .getElementById(`node-${node.row}-${node.col}`)
             .classList.add("active");
-          // Removes the arrow
+
+          // After a short delay, remove the arrow (if not the last node)
           setTimeout(() => {
-            // If we're on the finishNode don't remove the class so background-image is an arrow
             if (i !== nodesInShortestPathOrder.length - 1) {
               document
                 .getElementById(`node-${node.row}-${node.col}`)
                 .classList.remove("active");
             }
           }, 50);
-        }, 50 * i);
+        }, 50 * i); // Delay increases with each node to create animation effect
       } else {
+        // Add class to mark this node as part of the shortest path without animation
         document
           .getElementById(`node-${node.row}-${node.col}`)
           .classList.add("node-shortest-path-not-animated");
-        // Adds an arrow to the last shortest path node
+
+        // Add an arrow to the last shortest path node
         document
           .getElementById(`node-${node.row}-${node.col}`)
           .classList.add("active");
-        // Removes the arrow
-        // If we're on the finishNode don't remove the class so background-image is an arrow
+
+        // Remove the arrow (if not the last node)
         if (i !== nodesInShortestPathOrder.length - 1) {
           document
             .getElementById(`node-${node.row}-${node.col}`)
@@ -184,11 +190,14 @@ export default class PathfindingVisualizer extends Component {
         }
       }
     }
+
+    // Update state to indicate animation is completed
     this.setState({
       animationIsRunning: false,
-      animationIsCompleted: [true, algorithm],
+      animationIsCompleted: [true, algorithm], // Mark animation as completed for this algorithm
     });
   }
+
   // Define a function to move the starting node within a grid to a new position specified by the row and column indices.
   move = (
     grid,
