@@ -4,10 +4,10 @@ import "./PathfindingVisualizer.css";
 import { dijkstra, getNodesInShortestPathOrder } from "../algorithms/dijkstra";
 import { astar } from "../algorithms/astar";
 
-let START_NODE_COL = 15;
+let START_NODE_COL = 16;
 let FINISH_NODE_ROW = 10;
 let START_NODE_ROW = 10;
-let FINISH_NODE_COL = 35;
+let FINISH_NODE_COL = 45;
 
 export default class PathfindingVisualizer extends Component {
   constructor() {
@@ -26,8 +26,7 @@ export default class PathfindingVisualizer extends Component {
     const grid = getInitialGrid();
     this.setState({ grid });
   }
-  handleMouseDown(e, row, col) {
-    // e.preventDefault();
+  handleMouseDown(row, col) {
     if (this.state.animationIsRunning) return;
     if (this.state.animationIsRunning) return;
     if (row === START_NODE_ROW && col === START_NODE_COL) {
@@ -44,18 +43,10 @@ export default class PathfindingVisualizer extends Component {
     }
     this.setState({ mouseIsPressed: true });
   }
-  handleMouseEnter(e, row, col) {
-    // e.preventDefault();
+  handleMouseEnter(row, col) {
     if (this.state.animationIsRunning || !this.state.mouseIsPressed) return;
     if (this.state.dragNode[0]) {
-      let grid = this.move(
-        this.state.grid,
-        row,
-        col,
-        this.state.animationIsRunning,
-        this.state.dragNode,
-        this.state.animationIsCompleted[0]
-      );
+      let grid = this.move(this.state.grid, row, col, this.state.dragNode);
       this.setState({ grid: grid }, () => {
         if (this.state.animationIsCompleted[0]) {
           if (this.state.animationIsCompleted[1] === "dijkstra") {
@@ -85,7 +76,7 @@ export default class PathfindingVisualizer extends Component {
       visitedNodesInOrder,
       finishNode
     );
-    this.animateDjikstra(
+    this.animateAlgorithm(
       visitedNodesInOrder,
       nodesInShortestPathOrder,
       "dijkstra"
@@ -96,12 +87,10 @@ export default class PathfindingVisualizer extends Component {
     const startNode = grid[START_NODE_ROW][START_NODE_COL];
     const finishNode = grid[FINISH_NODE_ROW][FINISH_NODE_COL];
     const visitedNodesInOrder = astar(grid, startNode, finishNode);
-    this.animateDjikstra(visitedNodesInOrder, visitedNodesInOrder, "astar");
-    // this.setState({ animationIsCompleted: true });
+    this.animateAlgorithm(visitedNodesInOrder, visitedNodesInOrder, "astar");
   }
-  animateDjikstra(visitedNodesInOrder, nodesInShortestPathOrder, algorithm) {
+  animateAlgorithm(visitedNodesInOrder, nodesInShortestPathOrder, algorithm) {
     if (this.state.animationIsRunning) return;
-    // clearBoard(this.state.grid, "path", this.state.animationIsRunning);
     this.setState({
       grid: clearBoard(this.state.grid, "path", this.state.animationIsRunning),
       animationIsRunning: true,
@@ -199,16 +188,7 @@ export default class PathfindingVisualizer extends Component {
   }
 
   // Define a function to move the starting node within a grid to a new position specified by the row and column indices.
-  move = (
-    grid,
-    row,
-    col,
-    animationIsRunning,
-    dragNode,
-    animationIsCompleted
-  ) => {
-    // clearBoard(grid, "path", animationIsRunning);
-
+  move = (grid, row, col, dragNode) => {
     // Create a copy of the grid array using the slice() method to avoid modifying the original grid directly.
     let newGrid = grid.slice();
     if (dragNode[1] === "start") {
@@ -305,10 +285,9 @@ export default class PathfindingVisualizer extends Component {
                       isStart={isStart}
                       isWall={isWall}
                       mouseIsPressed={mouseIsPressed}
-                      // onMouseLeave={() => this.hover(false, row, col)}
                       onMouseUp={() => this.handleMouseUp()}
-                      onMouseDown={(e) => this.handleMouseDown(e, row, col)}
-                      onMouseEnter={(e) => this.handleMouseEnter(e, row, col)}
+                      onMouseDown={() => this.handleMouseDown(row, col)}
+                      onMouseEnter={() => this.handleMouseEnter(row, col)}
                     ></Node>
                   );
                 })}
@@ -324,10 +303,10 @@ export default class PathfindingVisualizer extends Component {
 const getInitialGrid = () => {
   const grid = [];
   // Iterate through rows
-  for (let row = 0; row < 20; row++) {
+  for (let row = 0; row < 21; row++) {
     const currentRow = [];
     // Iterate through columns
-    for (let col = 0; col < 50; col++) {
+    for (let col = 0; col < 61; col++) {
       // Create a node and add it to the current row
       currentRow.push(createNode(row, col));
     }
@@ -335,15 +314,6 @@ const getInitialGrid = () => {
     grid.push(currentRow);
   }
   return grid;
-};
-const getGrid = (grid) => {
-  const nodes = [];
-  for (const row of grid) {
-    for (const node of row) {
-      nodes.push(node);
-    }
-  }
-  return nodes;
 };
 // Create a node with specified row and column indices.
 const createNode = (row, col) => {
@@ -384,16 +354,16 @@ const clearBoard = (oldGrid, object, animationIsRunning) => {
   if (object === "board") {
     // grid = getInitialGrid();
     // Resetting the startNode
-    START_NODE_COL = 15;
+    START_NODE_COL = 16;
     START_NODE_ROW = 10;
     // Resetting the finishNode
     FINISH_NODE_ROW = 10;
-    FINISH_NODE_COL = 35;
+    FINISH_NODE_COL = 45;
   }
   // Loop through rows
-  for (let row = 0; row < 20; row++) {
+  for (let row = 0; row < 21; row++) {
     // Loop through columns
-    for (let col = 0; col < 50; col++) {
+    for (let col = 0; col < 61; col++) {
       // If the object to clear is walls, reset the node at this position to be a new wall node.
       if (object === "walls") {
         grid[row][col] = createNode(row, col);
