@@ -1,8 +1,9 @@
 .node {
   width: 25px;
   height: 25px;
-  outline: 1px solid rgb(175, 216, 248);
+  outline: 0.6px solid rgb(175, 216, 248);
   display: inline-block;
+  margin: -2.8px 0 -2.8px 0;
 }
 
 .node-finish {
@@ -39,6 +40,7 @@
   background-color: rgb(12, 53, 71);
   animation-name: nodewall;
   animation-duration: 0.3s;
+  outline: none;
 }
 
 @keyframes nodewall {

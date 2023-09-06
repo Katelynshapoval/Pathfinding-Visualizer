@@ -3,10 +3,11 @@ import Node from "./Node/Node";
 import "./PathfindingVisualizer.css";
 import { dijkstra, getNodesInShortestPathOrder } from "../algorithms/dijkstra";
 import { astar } from "../algorithms/astar";
+import Dropdown from "react-bootstrap/Dropdown";
 
 let START_NODE_COL = 16;
-let FINISH_NODE_ROW = 10;
-let START_NODE_ROW = 10;
+let FINISH_NODE_ROW = 12;
+let START_NODE_ROW = 12;
 let FINISH_NODE_COL = 45;
 
 export default class PathfindingVisualizer extends Component {
@@ -19,6 +20,7 @@ export default class PathfindingVisualizer extends Component {
       animationIsRunning: false,
       dragNode: false,
       animationIsCompleted: [false, ""],
+      chosenAnimation: "",
     };
   }
   // Initializes the grid
@@ -191,6 +193,7 @@ export default class PathfindingVisualizer extends Component {
   move = (grid, row, col, dragNode) => {
     // Create a copy of the grid array using the slice() method to avoid modifying the original grid directly.
     let newGrid = grid.slice();
+
     if (dragNode[1] === "start") {
       // Get a reference to the element representing the starting node in the original grid.
       const el = newGrid[START_NODE_ROW][START_NODE_COL];
@@ -219,58 +222,136 @@ export default class PathfindingVisualizer extends Component {
   };
   // Displays the grid of nodes
   render() {
-    const { grid, mouseIsPressed, animationIsRunning } = this.state;
+    let { grid, mouseIsPressed, animationIsRunning, chosenAnimation } =
+      this.state;
     return (
       <>
-        <button onClick={() => this.visualizeDijkstra()}>
-          Visualize Dijkstra's Algorithm
-        </button>
-        <button onClick={() => this.visualizeAStar()}>
-          Visualize A* Algorithm
-        </button>
-        {/* Cleares everything anf returns nodes back to original position */}
-        <button
-          onClick={() => {
-            this.setState({
-              grid: clearBoard(grid, "board", animationIsRunning),
-              animationIsCompleted: [false, ""],
-            });
-            // this.setState({  });
-          }}
-        >
-          Clear Board
-        </button>
-        {/* Cleans path and walls */}
-        <button
-          onClick={() => {
-            this.setState({
-              grid: clearBoard(grid, "walls", animationIsRunning),
-            });
-            this.setState({ animationIsCompleted: [false, ""] });
-          }}
-        >
-          Clear Walls
-        </button>
-        {/* Cleans just path */}
-        <button
-          onClick={() => {
-            this.setState({
-              grid: clearBoard(
-                grid,
-                "path",
-                animationIsRunning,
-                this.state.dragNode
-              ),
-            });
-            this.setState({ animationIsCompleted: [false, ""] });
-          }}
-        >
-          Clear Path
-        </button>
+        <header>
+          <p>Pathfinding-Visualizer</p>
+          <div className="buttons">
+            <div className="mainsetup">
+              <Dropdown>
+                <Dropdown.Toggle id="dropdown-basic">
+                  {chosenAnimation === "dijkstra"
+                    ? "Dijkstra's Algorithm"
+                    : chosenAnimation === "astar"
+                    ? "A* Search"
+                    : chosenAnimation === "bidirectional"
+                    ? "Bidirectional Swarm Algorithm"
+                    : "Algorithm"}
+                </Dropdown.Toggle>
+                <Dropdown.Menu>
+                  <Dropdown.Item
+                    onClick={() => {
+                      this.setState({ chosenAnimation: "dijkstra" });
+                    }}
+                  >
+                    Dijkstra's Algorithm
+                  </Dropdown.Item>
+                  <Dropdown.Item
+                    onClick={() => this.setState({ chosenAnimation: "astar" })}
+                  >
+                    A* Search
+                  </Dropdown.Item>
+                  <Dropdown.Item
+                    onClick={() =>
+                      this.setState({ chosenAnimation: "bidirectional" })
+                    }
+                  >
+                    Bidirectional Swarm Algorithm
+                  </Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown>
+              <Dropdown>
+                <Dropdown.Toggle id="dropdown-basic">
+                  Mazes & Patterns
+                </Dropdown.Toggle>
+                <Dropdown.Menu>
+                  <Dropdown.Item
+                  // onClick={() => {
+                  // }}
+                  >
+                    Simple stair pattern
+                  </Dropdown.Item>
+                  <Dropdown.Item
+                  // onClick={() => this.setState({ chosenAnimation: "astar" })}
+                  >
+                    Recursive division
+                  </Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown>
+            </div>
+            <div>
+              <button
+                type="button"
+                className="button visualize"
+                onClick={() => {
+                  this.setState(
+                    { animationIsCompleted: [false, ""] },
+                    function () {
+                      if (chosenAnimation === "astar") {
+                        this.visualizeAStar();
+                      } else if (chosenAnimation === "dijkstra") {
+                        this.visualizeDijkstra();
+                      }
+                    }
+                  );
+                }}
+              >
+                Visualize!
+              </button>
+            </div>
+
+            <div className="clearing">
+              {/* Cleares everything anf returns nodes back to original position */}
+              <button
+                className="button"
+                onClick={() => {
+                  this.setState({
+                    grid: clearBoard(grid, "board", animationIsRunning),
+                    animationIsCompleted: [false, ""],
+                  });
+                  // this.setState({  });
+                }}
+              >
+                Clear Board
+              </button>
+              {/* Cleans path and walls */}
+              <button
+                className="button"
+                onClick={() => {
+                  this.setState({
+                    grid: clearBoard(grid, "walls", animationIsRunning),
+                  });
+                  this.setState({ animationIsCompleted: [false, ""] });
+                }}
+              >
+                Clear Walls
+              </button>
+              {/* Cleans just path */}
+              <button
+                className="button"
+                onClick={() => {
+                  this.setState({
+                    grid: clearBoard(
+                      grid,
+                      "path",
+                      animationIsRunning,
+                      this.state.dragNode
+                    ),
+                  });
+                  this.setState({ animationIsCompleted: [false, ""] });
+                }}
+              >
+                Clear Path
+              </button>
+            </div>
+          </div>
+        </header>
         <div className="grid">
           {grid.map((row, rowIdx) => {
             return (
-              <div key={rowIdx}>
+              <div id="row" key={rowIdx}>
                 {/* Map through each node in the row */}
                 {row.map((node, nodeIdx) => {
                   const { row, col, isFinish, isStart, isWall, isHovered } =
@@ -303,10 +384,10 @@ export default class PathfindingVisualizer extends Component {
 const getInitialGrid = () => {
   const grid = [];
   // Iterate through rows
-  for (let row = 0; row < 21; row++) {
+  for (let row = 0; row < 23; row++) {
     const currentRow = [];
     // Iterate through columns
-    for (let col = 0; col < 61; col++) {
+    for (let col = 0; col < 59; col++) {
       // Create a node and add it to the current row
       currentRow.push(createNode(row, col));
     }
@@ -334,6 +415,11 @@ const createNode = (row, col) => {
 };
 
 const getNewGridWithWallToggled = (grid, row, col) => {
+  if (
+    (row === START_NODE_ROW && col === START_NODE_COL) ||
+    (row === FINISH_NODE_ROW && col === FINISH_NODE_COL)
+  )
+    return grid;
   const newGrid = grid.slice();
   const node = newGrid[row][col];
   const newNode = {
@@ -355,15 +441,15 @@ const clearBoard = (oldGrid, object, animationIsRunning) => {
     // grid = getInitialGrid();
     // Resetting the startNode
     START_NODE_COL = 16;
-    START_NODE_ROW = 10;
+    START_NODE_ROW = 12;
     // Resetting the finishNode
-    FINISH_NODE_ROW = 10;
+    FINISH_NODE_ROW = 12;
     FINISH_NODE_COL = 45;
   }
   // Loop through rows
-  for (let row = 0; row < 21; row++) {
+  for (let row = 0; row < 23; row++) {
     // Loop through columns
-    for (let col = 0; col < 61; col++) {
+    for (let col = 0; col < 59; col++) {
       // If the object to clear is walls, reset the node at this position to be a new wall node.
       if (object === "walls") {
         grid[row][col] = createNode(row, col);
