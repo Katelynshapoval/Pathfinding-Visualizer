@@ -153,13 +153,31 @@ export default class PathfindingVisualizer extends Component {
           document
             .getElementById(`node-${node.row}-${node.col}`)
             .classList.add("active");
-
-          // After a short delay, remove the arrow (if not the last node)
-          setTimeout(() => {
-            if (i !== nodesInShortestPathOrder.length - 1) {
+          if (i >= 1) {
+            if (node.row < nodesInShortestPathOrder[i - 1].row) {
               document
                 .getElementById(`node-${node.row}-${node.col}`)
-                .classList.remove("active");
+                .classList.add("up");
+            } else if (node.row > nodesInShortestPathOrder[i - 1].row) {
+              document
+                .getElementById(`node-${node.row}-${node.col}`)
+                .classList.add("down");
+            } else if (node.col > nodesInShortestPathOrder[i - 1].col) {
+              document
+                .getElementById(`node-${node.row}-${node.col}`)
+                .classList.add("right");
+            } else if (node.col < nodesInShortestPathOrder[i - 1].col) {
+              document
+                .getElementById(`node-${node.row}-${node.col}`)
+                .classList.add("left");
+            }
+          }
+          // After a short delay, remove the arrow (if not the last node)
+          setTimeout(() => {
+            if (i !== nodesInShortestPathOrder.length - 1 && i !== 0) {
+              document.getElementById(
+                `node-${node.row}-${node.col}`
+              ).className = "node node-shortest-path";
             }
           }, 50);
         }, 50 * i); // Delay increases with each node to create animation effect

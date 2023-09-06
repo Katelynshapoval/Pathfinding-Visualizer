@@ -102,6 +102,18 @@
   }
 }
 .active {
-  background-image: url(arrow-right.svg);
+  /* background-image: url(arrow-right.svg); */
   background-size: 100%;
+}
+.up {
+  background-image: url(arrow-up.svg);
+}
+.down {
+  background-image: url(arrow-down.svg);
+}
+.right {
+  background-image: url(arrow-right.svg);
+}
+.left {
+  background-image: url(arrow-left.svg);
 }
