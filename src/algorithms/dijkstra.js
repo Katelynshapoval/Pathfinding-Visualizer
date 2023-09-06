@@ -10,7 +10,13 @@ export function dijkstra(grid, startNode, finishNode) {
     sortNodesByDistance(unvisitedNodes);
     const closestNode = unvisitedNodes.shift();
     // If we encounter a wall, we skip it.
-    if (closestNode.isWall) continue;
+    if (
+      closestNode.isWall &&
+      startNode !== closestNode &&
+      finishNode !== closestNode
+    )
+      continue;
+
     // If the closest node is at a distance of infinity,
     // we must be trapped and should therefore stop.
     if (closestNode.distance === Infinity) return visitedNodesInOrder;
@@ -64,13 +70,19 @@ function getAllNodes(grid) {
 
 // Backtracks from the finishNode to find the shortest path.
 // Only works when called *after* the dijkstra method above.
-export function getNodesInShortestPathOrder(visitedNodesInOrder, finishNode) {
+export function getNodesInShortestPathOrder(
+  visitedNodesInOrder,
+  finishNode,
+  startNode
+) {
   if (!visitedNodesInOrder.includes(finishNode)) return [];
   const nodesInShortestPathOrder = [];
   let currentNode = finishNode;
-  while (currentNode !== null) {
+  // If it had to run the loop untill the previous node exists, bugs would appear when placing nodes on the walls (it will backtrack to some random node and not the startnode)
+  while (currentNode !== null && currentNode !== startNode) {
     nodesInShortestPathOrder.unshift(currentNode);
     currentNode = currentNode.previousNode;
   }
+  nodesInShortestPathOrder.unshift(startNode);
   return nodesInShortestPathOrder;
 }

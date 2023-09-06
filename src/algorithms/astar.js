@@ -16,14 +16,21 @@ export function astar(grid, startNode, finishNode) {
     const currentNode = getLowestFNode(openList);
     // Backtrack the path if the finish node is reached
     if (currentNode === finishNode) {
-      return backtrackPath(currentNode);
+      return backtrackPath(currentNode, startNode, finishNode);
     }
     // Remove the current node from the open list and add it to the closed list
     openList.splice(openList.indexOf(currentNode), 1);
     closedList.push(currentNode);
     // Get neighboring nodes
     let neighbors = getNeighbours(currentNode, grid);
-    evaluateNeighbors(neighbors, currentNode, finishNode, openList, closedList);
+    evaluateNeighbors(
+      neighbors,
+      currentNode,
+      finishNode,
+      openList,
+      closedList,
+      startNode
+    );
   }
   // If no path found, return an empty array
   return [];
@@ -49,12 +56,16 @@ function evaluateNeighbors(
   currentNode,
   finishNode,
   openList,
-  closedList
+  closedList,
+  startNode
 ) {
   for (let i = 0; i < neighbors.length; i++) {
     let neighbor = neighbors[i];
     // Skip if neighbor is in closed list or is a wall
-    if (closedList.includes(neighbor) || neighbor.isWall) {
+    if (
+      closedList.includes(neighbor) ||
+      (neighbor.isWall && startNode !== neighbor && finishNode !== neighbor)
+    ) {
       continue;
     }
     // Calculate tentative g score for the neighbor
@@ -89,18 +100,20 @@ function getLowestFNode(nodeList) {
   return nodeList[lowestIndex];
 }
 
-function backtrackPath(currentNode) {
+function backtrackPath(currentNode, startNode) {
   // If the current node is the finish node, backtrack to retrieve the path
   let curr = currentNode;
   let ret = [];
-  // Backtrack from the finish node to the start node
-  while (curr.previousNode) {
+  // Backtrack from the finish node to the start node.
+  // If it had to run the loop untill the previous node exists, bugs would appear when placing nodes on the walls (it will backtrack to some random node and not the startnode)
+  while (curr.previousNode !== null && curr.previousNode !== startNode) {
     // Add the current node to the path
     ret.push(curr);
     // Move to the previous node
     curr = curr.previousNode;
   }
   ret.push(curr);
+  ret.push(startNode);
   // Reverse the path to get it from start to finish
   return ret.reverse();
 }
