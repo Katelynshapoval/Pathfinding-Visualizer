@@ -28,28 +28,48 @@ export default class PathfindingVisualizer extends Component {
     const grid = getInitialGrid();
     this.setState({ grid });
   }
+  // This function is called when the mouse button is pressed down on a grid cell.
   handleMouseDown(row, col) {
+    // If an animation is currently running, do nothing.
     if (this.state.animationIsRunning) return;
-    if (this.state.animationIsRunning) return;
+
+    // Check if the mouse is pressed on the start node.
     if (row === START_NODE_ROW && col === START_NODE_COL) {
+      // Set the dragNode state to indicate that the start node is being dragged.
       this.setState({
         dragNode: [true, "start"],
       });
-    } else if (row === FINISH_NODE_ROW && col === FINISH_NODE_COL) {
+    }
+    // Check if the mouse is pressed on the finish node.
+    else if (row === FINISH_NODE_ROW && col === FINISH_NODE_COL) {
+      // Set the dragNode state to indicate that the finish node is being dragged.
       this.setState({
         dragNode: [true, "finish"],
       });
-    } else if (this.state.dragNode[0] === false) {
+    }
+    // If neither start nor finish node is being dragged and animation is not running, toggle wall on the grid.
+    else if (this.state.dragNode[0] === false) {
+      // Generate a new grid with the wall toggled at the specified row and column.
       const newGrid = getNewGridWithWallToggled(this.state.grid, row, col);
+      // Update the grid state with the new grid that includes the wall change.
       this.setState({ grid: newGrid });
     }
+    // Set the mouseIsPressed state to true to indicate that the mouse button is being held down.
     this.setState({ mouseIsPressed: true });
   }
+
+  // This function is called when the mouse enters a grid cell.
   handleMouseEnter(row, col) {
+    // If an animation is currently running or the mouse button is not pressed, do nothing.
     if (this.state.animationIsRunning || !this.state.mouseIsPressed) return;
+
+    // Check if a node is being dragged.
     if (this.state.dragNode[0]) {
+      // Move the dragged node to the new position on the grid.
       let grid = this.move(this.state.grid, row, col, this.state.dragNode);
+      // Update the grid state with the new grid after the node movement.
       this.setState({ grid: grid }, () => {
+        // If the animation is completed and its type is dijkstra or astar, trigger visualization.
         if (this.state.animationIsCompleted[0]) {
           if (this.state.animationIsCompleted[1] === "dijkstra") {
             this.visualizeDijkstra();
@@ -59,40 +79,69 @@ export default class PathfindingVisualizer extends Component {
         }
       });
     } else {
+      // If no node is being dragged, toggle wall on the grid at the specified row and column.
       const newGrid = getNewGridWithWallToggled(this.state.grid, row, col);
+      // Update the grid state with the new grid that includes the wall change.
       this.setState({ grid: newGrid });
     }
   }
+
+  // This function is called when the mouse button is released.
   handleMouseUp() {
+    // If an animation is currently running, do nothing.
     if (this.state.animationIsRunning) return;
+
+    // Set the mouseIsPressed state to false to indicate that the mouse button is no longer pressed.
     this.setState({ mouseIsPressed: false });
+
+    // Reset the dragNode state to indicate that no node is being dragged.
     this.setState({ dragNode: [false, ""] });
   }
 
+  // Visualize the Dijkstra's algorithm on the grid.
   visualizeDijkstra() {
+    // Retrieve the current grid and the start and finish nodes from the state.
     const { grid } = this.state;
     const startNode = grid[START_NODE_ROW][START_NODE_COL];
     const finishNode = grid[FINISH_NODE_ROW][FINISH_NODE_COL];
+
+    // Run Dijkstra's algorithm to find the visited nodes in order.
     const visitedNodesInOrder = dijkstra(grid, startNode, finishNode);
+
+    // Calculate the nodes in the shortest path order based on the visited nodes.
     const nodesInShortestPathOrder = getNodesInShortestPathOrder(
       visitedNodesInOrder,
       finishNode,
       startNode
     );
+
+    // Trigger the animation of the algorithm, passing the visited nodes, shortest path nodes, and algorithm type.
     this.animateAlgorithm(
       visitedNodesInOrder,
-      nodesInShortestPathOrder,
-      "dijkstra"
+      "dijkstra",
+      nodesInShortestPathOrder
     );
   }
+
+  // Visualize the A* algorithm on the grid.
   visualizeAStar() {
+    // Retrieve the current grid and the start and finish nodes from the state.
     const { grid } = this.state;
     const startNode = grid[START_NODE_ROW][START_NODE_COL];
     const finishNode = grid[FINISH_NODE_ROW][FINISH_NODE_COL];
+
+    // Run the A* algorithm to find the visited nodes in order.
     const visitedNodesInOrder = astar(grid, startNode, finishNode);
-    this.animateAlgorithm(visitedNodesInOrder, visitedNodesInOrder, "astar");
+
+    // Trigger the animation of the algorithm, passing the visited nodes and algorithm type.
+    this.animateAlgorithm(visitedNodesInOrder, "astar");
   }
-  animateAlgorithm(visitedNodesInOrder, nodesInShortestPathOrder, algorithm) {
+
+  animateAlgorithm(
+    visitedNodesInOrder,
+    algorithm,
+    nodesInShortestPathOrder = visitedNodesInOrder
+  ) {
     if (this.state.animationIsRunning) return;
     this.setState({
       grid: clearBoard(this.state.grid, "path", this.state.animationIsRunning),
