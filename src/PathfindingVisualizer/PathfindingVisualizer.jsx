@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { Component, createRef, useEffect } from "react";
 import Node from "./Node/Node";
 import "./PathfindingVisualizer.css";
 import { dijkstra, getNodesInShortestPathOrder } from "../algorithms/dijkstra";
@@ -22,11 +22,19 @@ export default class PathfindingVisualizer extends Component {
       animationIsCompleted: [false, ""],
       chosenAnimation: "",
     };
+    this.nodeRefs = [];
   }
+
   // Initializes the grid
   componentDidMount() {
     const grid = getInitialGrid();
     this.setState({ grid });
+    for (let row = 0; row < 23; row++) {
+      this.nodeRefs[row] = [];
+      for (let col = 0; col < 59; col++) {
+        this.nodeRefs[row][col] = createRef();
+      }
+    }
   }
   // This function is called when the mouse button is pressed down on a grid cell.
   handleMouseDown(row, col) {
@@ -144,7 +152,12 @@ export default class PathfindingVisualizer extends Component {
   ) {
     if (this.state.animationIsRunning) return;
     this.setState({
-      grid: clearBoard(this.state.grid, "path", this.state.animationIsRunning),
+      grid: clearBoard(
+        this.state.grid,
+        "path",
+        this.state.animationIsRunning,
+        this.nodeRefs
+      ),
       animationIsRunning: true,
     });
     for (let i = 0; i <= visitedNodesInOrder.length; i++) {
@@ -164,19 +177,16 @@ export default class PathfindingVisualizer extends Component {
       }
       // Animate each visited node
       const node = visitedNodesInOrder[i];
+      const nodeRef = this.nodeRefs[node.row][node.col].current;
       if (
         this.state.animationIsCompleted[0] === false ||
         this.state.animationIsCompleted[1] !== algorithm
       ) {
         setTimeout(() => {
-          document
-            .getElementById(`node-${node.row}-${node.col}`)
-            .classList.add("node-visited");
+          nodeRef.classList.add("node-visited");
         }, 10 * i);
       } else {
-        document
-          .getElementById(`node-${node.row}-${node.col}`)
-          .classList.add("node-visited-not-animated");
+        nodeRef.classList.add("node-visited-not-animated");
       }
     }
   }
@@ -187,6 +197,8 @@ export default class PathfindingVisualizer extends Component {
     // (animationIsCompleted[0] corresponds to completion status, animationIsCompleted[1] to algorithm)
     for (let i = 0; i < nodesInShortestPathOrder.length; i++) {
       const node = nodesInShortestPathOrder[i];
+      const nodeRef = this.nodeRefs[node.row][node.col].current;
+
       if (
         this.state.animationIsCompleted[0] === false || // If animation is not completed
         this.state.animationIsCompleted[1] !== algorithm // Or if the algorithm has changed
@@ -194,58 +206,53 @@ export default class PathfindingVisualizer extends Component {
         // Delay the addition of classes to create an animation effect
         setTimeout(() => {
           // Add class to mark this node as part of the shortest path
-          document
-            .getElementById(`node-${node.row}-${node.col}`)
-            .classList.add("node-shortest-path");
+          nodeRef.classList.add("node-shortest-path");
 
           // Add an arrow to the last shortest path node
-          document
-            .getElementById(`node-${node.row}-${node.col}`)
-            .classList.add("active");
+
+          nodeRef.classList.add("active");
           if (i >= 1) {
             if (node.row < nodesInShortestPathOrder[i - 1].row) {
-              document
-                .getElementById(`node-${node.row}-${node.col}`)
-                .classList.add("up");
+              nodeRef.classList.add("up");
             } else if (node.row > nodesInShortestPathOrder[i - 1].row) {
-              document
-                .getElementById(`node-${node.row}-${node.col}`)
-                .classList.add("down");
+              nodeRef.classList.add("down");
             } else if (node.col > nodesInShortestPathOrder[i - 1].col) {
-              document
-                .getElementById(`node-${node.row}-${node.col}`)
-                .classList.add("right");
+              nodeRef.classList.add("right");
             } else if (node.col < nodesInShortestPathOrder[i - 1].col) {
-              document
-                .getElementById(`node-${node.row}-${node.col}`)
-                .classList.add("left");
+              nodeRef.classList.add("left");
             }
           }
           // After a short delay, remove the arrow (if not the last node)
           setTimeout(() => {
             if (i !== nodesInShortestPathOrder.length - 1 && i !== 0) {
-              document.getElementById(
-                `node-${node.row}-${node.col}`
-              ).className = "node node-shortest-path";
+              nodeRef.className = "node node-shortest-path";
             }
           }, 50);
         }, 50 * i); // Delay increases with each node to create animation effect
       } else {
         // Add class to mark this node as part of the shortest path without animation
-        document
-          .getElementById(`node-${node.row}-${node.col}`)
-          .classList.add("node-shortest-path-not-animated");
+
+        nodeRef.classList.add("node-shortest-path-not-animated");
 
         // Add an arrow to the last shortest path node
-        document
-          .getElementById(`node-${node.row}-${node.col}`)
-          .classList.add("active");
+
+        nodeRef.classList.add("active");
+        if (i === nodesInShortestPathOrder.length - 1) {
+          console.log(nodeRef);
+          if (node.row < nodesInShortestPathOrder[i - 1].row) {
+            nodeRef.classList.add("up");
+          } else if (node.row > nodesInShortestPathOrder[i - 1].row) {
+            nodeRef.classList.add("down");
+          } else if (node.col > nodesInShortestPathOrder[i - 1].col) {
+            nodeRef.classList.add("right");
+          } else if (node.col < nodesInShortestPathOrder[i - 1].col) {
+            nodeRef.classList.add("left");
+          }
+        }
 
         // Remove the arrow (if not the last node)
         if (i !== nodesInShortestPathOrder.length - 1) {
-          document
-            .getElementById(`node-${node.row}-${node.col}`)
-            .classList.remove("active");
+          nodeRef.classList.remove("active");
         }
       }
     }
@@ -290,8 +297,13 @@ export default class PathfindingVisualizer extends Component {
   };
   // Displays the grid of nodes
   render() {
-    let { grid, mouseIsPressed, animationIsRunning, chosenAnimation } =
-      this.state;
+    let {
+      grid,
+      mouseIsPressed,
+      animationIsRunning,
+      chosenAnimation,
+      dragNode,
+    } = this.state;
     return (
       <>
         <header>
@@ -376,7 +388,12 @@ export default class PathfindingVisualizer extends Component {
                 className="button"
                 onClick={() => {
                   this.setState({
-                    grid: clearBoard(grid, "board", animationIsRunning),
+                    grid: clearBoard(
+                      grid,
+                      "board",
+                      animationIsRunning,
+                      this.nodeRefs
+                    ),
                     animationIsCompleted: [false, ""],
                   });
                   // this.setState({  });
@@ -389,7 +406,12 @@ export default class PathfindingVisualizer extends Component {
                 className="button"
                 onClick={() => {
                   this.setState({
-                    grid: clearBoard(grid, "walls", animationIsRunning),
+                    grid: clearBoard(
+                      grid,
+                      "walls",
+                      animationIsRunning,
+                      this.nodeRefs
+                    ),
                   });
                   this.setState({ animationIsCompleted: [false, ""] });
                 }}
@@ -405,7 +427,7 @@ export default class PathfindingVisualizer extends Component {
                       grid,
                       "path",
                       animationIsRunning,
-                      this.state.dragNode
+                      this.nodeRefs
                     ),
                   });
                   this.setState({ animationIsCompleted: [false, ""] });
@@ -429,6 +451,7 @@ export default class PathfindingVisualizer extends Component {
                     <Node
                       key={nodeIdx}
                       col={col}
+                      nodeRefs={this.nodeRefs}
                       row={row}
                       isFinish={isFinish}
                       isStart={isStart}
@@ -499,7 +522,7 @@ const getNewGridWithWallToggled = (grid, row, col) => {
 };
 
 // This function clears parts of the grid based on the provided parameters.
-const clearBoard = (oldGrid, object, animationIsRunning) => {
+const clearBoard = (oldGrid, object, animationIsRunning, nodeRefs) => {
   // If an animation is currently running, do not modify the grid and just return the old grid.
   if (animationIsRunning) return oldGrid;
   // Create a copy of the oldGrid array to avoid modifying the original grid directly.
@@ -518,6 +541,7 @@ const clearBoard = (oldGrid, object, animationIsRunning) => {
   for (let row = 0; row < 23; row++) {
     // Loop through columns
     for (let col = 0; col < 59; col++) {
+      const nodeRef = nodeRefs[row][col].current;
       // If the object to clear is walls, reset the node at this position to be a new wall node.
       if (object === "walls") {
         grid[row][col] = createNode(row, col);
@@ -529,19 +553,11 @@ const clearBoard = (oldGrid, object, animationIsRunning) => {
         grid[row][col] = createNode(row, col);
       }
       // Remove visual classes from the corresponding DOM element representing the node.
-      document
-        .getElementById(`node-${row}-${col}`)
-        .classList.remove("node-visited");
-      document
-        .getElementById(`node-${row}-${col}`)
-        .classList.remove("node-shortest-path");
-      document.getElementById(`node-${row}-${col}`).classList.remove("active");
-      document
-        .getElementById(`node-${row}-${col}`)
-        .classList.remove("node-visited-not-animated");
-      document
-        .getElementById(`node-${row}-${col}`)
-        .classList.remove("node-shortest-path-not-animated");
+      nodeRef.classList.remove("node-visited");
+      nodeRef.classList.remove("node-shortest-path");
+      nodeRef.classList.remove("active");
+      nodeRef.classList.remove("node-visited-not-animated");
+      nodeRef.classList.remove("node-shortest-path-not-animated");
     }
   }
   // Return the modified grid after clearing the specified object.
