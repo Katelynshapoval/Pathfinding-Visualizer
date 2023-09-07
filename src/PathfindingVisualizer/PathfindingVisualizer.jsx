@@ -4,6 +4,11 @@ import "./PathfindingVisualizer.css";
 import { dijkstra, getNodesInShortestPathOrder } from "../algorithms/dijkstra";
 import { astar } from "../algorithms/astar";
 import Dropdown from "react-bootstrap/Dropdown";
+import { ReactComponent as Arrowright } from "./Node/arrow-right.svg";
+import { ReactComponent as FinishNode } from "./Node/circle.svg";
+// import { ReactComponent as FinishNode } from "./Node/arrow-up.svg";
+// import { ReactComponent as Arrowright } from "./Node/arrow-right.svg";
+// import { ReactComponent as Arrowright } from "./Node/arrow-right.svg";
 
 let START_NODE_COL = 16;
 let FINISH_NODE_ROW = 12;
@@ -298,13 +303,8 @@ export default class PathfindingVisualizer extends Component {
   };
   // Displays the grid of nodes
   render() {
-    let {
-      grid,
-      mouseIsPressed,
-      animationIsRunning,
-      chosenAnimation,
-      dragNode,
-    } = this.state;
+    let { grid, mouseIsPressed, animationIsRunning, chosenAnimation } =
+      this.state;
     return (
       <>
         <header>
@@ -439,6 +439,33 @@ export default class PathfindingVisualizer extends Component {
             </div>
           </div>
         </header>
+        <div className="explanations">
+          <div className="explanation">
+            {/* <img src={arrowright} alt="h" srcset="" /> */}
+            <Arrowright />
+            <p>Start Node</p>
+          </div>
+          <div className="explanation">
+            <FinishNode />
+            <p>Target Node</p>
+          </div>
+          <div className="explanation">
+            <div className="node"></div>
+            <p>Unvisited Node</p>
+          </div>
+          <div className="explanation">
+            <div className="node node-visited-not-animated"></div>
+            <p>Visited Node</p>
+          </div>
+          <div className="explanation">
+            <div className="node node-shortest-path-not-animated"></div>
+            <p>Shortest-path Node</p>
+          </div>
+          <div className="explanation">
+            <div className="node node-wall-not-animated"></div>
+            <p>Wall Node</p>
+          </div>
+        </div>
         <div className="grid">
           {grid.map((row, rowIdx) => {
             return (

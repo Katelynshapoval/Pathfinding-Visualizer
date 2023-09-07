@@ -1,5 +1,5 @@
 .grid {
-  margin: 80px 0 0;
+  margin: 0px 0 0;
 }
 header {
   background-color: #27374d;
@@ -79,3 +79,19 @@ header p {
   background-color: #2c6666;
   border: solid 2px #2c6666;
 }
+
+.explanations {
+  display: flex;
+  height: 84px;
+  justify-content: space-around;
+  align-items: center;
+  margin-top: 20px;
+}
+.explanation {
+  transform: scale(1.2);
+  font-weight: 600;
+}
+/* .explanation p {
+  display: inline;
+  margin-left: 10px;
+} */

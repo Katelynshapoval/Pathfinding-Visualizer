@@ -7,8 +7,8 @@
 }
 
 .node-finish {
-  background-image: url(circle.png);
-  background-size: 85%;
+  background-image: url(circle.svg);
+  background-size: 90%;
   background-repeat: no-repeat;
   background-position: center;
 }
@@ -35,11 +35,13 @@
   animation-fill-mode: forwards;
   animation-play-state: running;
 }
-
 .node-wall {
-  background-color: rgb(12, 53, 71);
   animation-name: nodewall;
   animation-duration: 0.3s;
+}
+.node-wall,
+.node-wall-not-animated {
+  background-color: rgb(12, 53, 71);
   outline: none;
 }
 
