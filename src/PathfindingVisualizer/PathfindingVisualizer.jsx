@@ -1,4 +1,4 @@
-import React, { Component, createRef, useEffect } from "react";
+import React, { Component, createRef } from "react";
 import Node from "./Node/Node";
 import "./PathfindingVisualizer.css";
 import { dijkstra, getNodesInShortestPathOrder } from "../algorithms/dijkstra";
@@ -25,7 +25,7 @@ export default class PathfindingVisualizer extends Component {
     this.nodeRefs = [];
   }
 
-  // Initializes the grid
+  // Initializes the grid and create nodeReft
   componentDidMount() {
     const grid = getInitialGrid();
     this.setState({ grid });
@@ -238,7 +238,8 @@ export default class PathfindingVisualizer extends Component {
 
         nodeRef.classList.add("active");
         if (i === nodesInShortestPathOrder.length - 1) {
-          console.log(nodeRef);
+          nodeRef.className =
+            "node node-finish node-visited-not-animated node-shortest-path-not-animated active";
           if (node.row < nodesInShortestPathOrder[i - 1].row) {
             nodeRef.classList.add("up");
           } else if (node.row > nodesInShortestPathOrder[i - 1].row) {
