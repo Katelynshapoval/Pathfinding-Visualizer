@@ -1,4 +1,4 @@
-import React, { Component, createRef } from "react";
+import React, { Component, createRef, useRef } from "react";
 import Node from "./Node/Node";
 import "./PathfindingVisualizer.css";
 import { dijkstra, getNodesInShortestPathOrder } from "../algorithms/dijkstra";
@@ -26,6 +26,7 @@ export default class PathfindingVisualizer extends Component {
       dragNode: false,
       animationIsCompleted: [false, ""],
       chosenAnimation: "",
+      speed: "fast",
     };
     this.nodeRefs = [];
   }
@@ -156,6 +157,14 @@ export default class PathfindingVisualizer extends Component {
     nodesInShortestPathOrder = visitedNodesInOrder
   ) {
     if (this.state.animationIsRunning) return;
+    let speed =
+      this.state.speed === "fast"
+        ? 10
+        : this.state.speed === "average"
+        ? 80
+        : this.state.speed === "slow"
+        ? 350
+        : 10;
     this.setState({
       grid: clearBoard(
         this.state.grid,
@@ -174,7 +183,7 @@ export default class PathfindingVisualizer extends Component {
         ) {
           setTimeout(() => {
             this.animateShortestPath(nodesInShortestPathOrder, algorithm);
-          }, 10 * i);
+          }, speed * i);
         } else {
           this.animateShortestPath(nodesInShortestPathOrder, algorithm);
         }
@@ -189,7 +198,7 @@ export default class PathfindingVisualizer extends Component {
       ) {
         setTimeout(() => {
           nodeRef.classList.add("node-visited");
-        }, 10 * i);
+        }, speed * i);
       } else {
         nodeRef.classList.add("node-visited-not-animated");
       }
@@ -303,7 +312,7 @@ export default class PathfindingVisualizer extends Component {
   };
   // Displays the grid of nodes
   render() {
-    let { grid, mouseIsPressed, animationIsRunning, chosenAnimation } =
+    let { grid, mouseIsPressed, animationIsRunning, chosenAnimation, speed } =
       this.state;
     return (
       <>
@@ -383,7 +392,7 @@ export default class PathfindingVisualizer extends Component {
               </button>
             </div>
 
-            <div className="clearing">
+            <div className="secondary">
               {/* Cleares everything anf returns nodes back to original position */}
               <button
                 className="button"
@@ -437,6 +446,35 @@ export default class PathfindingVisualizer extends Component {
                 Clear Path
               </button>
             </div>
+            <Dropdown className="speed">
+              <Dropdown.Toggle id="dropdown-basic">
+                Speed:
+                {this.speed === "fast"
+                  ? " Fast"
+                  : speed === "average"
+                  ? " Average"
+                  : speed === "slow"
+                  ? " Slow"
+                  : " Fast"}
+              </Dropdown.Toggle>
+              <Dropdown.Menu>
+                <Dropdown.Item
+                  onClick={() => {
+                    this.setState({ speed: "fast" });
+                  }}
+                >
+                  Fast
+                </Dropdown.Item>
+                <Dropdown.Item
+                  onClick={() => this.setState({ speed: "average" })}
+                >
+                  Average
+                </Dropdown.Item>
+                <Dropdown.Item onClick={() => this.setState({ speed: "slow" })}>
+                  Slow
+                </Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown>
           </div>
         </header>
         <div className="explanations">

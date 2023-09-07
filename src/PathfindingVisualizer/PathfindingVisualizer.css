@@ -6,43 +6,48 @@ header {
   height: 60px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  /* justify-content: space-between; */
 }
 
 .buttons {
-  width: 70%;
+  width: 78%;
   height: 100%;
   display: flex;
   float: right;
-  justify-content: space-around;
+  justify-content: space-between;
   align-items: center;
 }
 
 .mainsetup {
   display: flex;
   justify-content: flex-start;
+  /* margin-right: 80px;
+  margin-left: 20px; */
 }
 .mainsetup #dropdown-basic {
-  margin-left: 10px;
+  margin-left: 20px;
 }
 
-.clearing {
+.secondary {
   display: flex;
   justify-content: flex-end;
 }
-.clearing button {
+.secondary button {
   margin-left: 10px;
 }
 
 header p {
   padding-top: 1%;
+  padding-left: 10px;
   display: inline;
+  text-align: left;
   font-size: 30px;
-  width: 30%;
   color: white;
   font-weight: 500;
 }
-
+.speed {
+  width: 140px;
+}
 .button,
 .visualize {
   font-family: Roboto, sans-serif;
