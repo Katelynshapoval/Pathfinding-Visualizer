@@ -6,13 +6,11 @@ import { astar } from "../algorithms/astar";
 import Dropdown from "react-bootstrap/Dropdown";
 import { ReactComponent as Arrowright } from "./Node/arrow-right.svg";
 import { ReactComponent as FinishNode } from "./Node/circle.svg";
-// import { ReactComponent as FinishNode } from "./Node/arrow-up.svg";
-// import { ReactComponent as Arrowright } from "./Node/arrow-right.svg";
-// import { ReactComponent as Arrowright } from "./Node/arrow-right.svg";
+import { stairPattern } from "../mazeAlgorithms/stairPattern";
 
 let START_NODE_COL = 16;
-let FINISH_NODE_ROW = 12;
-let START_NODE_ROW = 12;
+let FINISH_NODE_ROW = 11;
+let START_NODE_ROW = 11;
 let FINISH_NODE_COL = 45;
 
 export default class PathfindingVisualizer extends Component {
@@ -150,13 +148,33 @@ export default class PathfindingVisualizer extends Component {
     // Trigger the animation of the algorithm, passing the visited nodes and algorithm type.
     this.animateAlgorithm(visitedNodesInOrder, "astar");
   }
+  visualizeStairPattern() {
+    // Obtain the walls in the staircase pattern by calling the 'stairPattern' function.
+    let walls = stairPattern(this.state.grid);
+
+    // Iterate through the 'walls' array to visualize each wall element with a delay.
+    for (let i = 0; i < walls.length; i++) {
+      let wall = walls[i];
+
+      // Get a reference to the DOM element representing the current wall in the grid.
+      const wallRef = this.nodeRefs[wall.row][wall.col].current;
+
+      // Use setTimeout to add a CSS class to the wall element with a delay.
+      setTimeout(() => {
+        wallRef.classList.add("node-wall");
+      }, 20 * i); // The delay is 20 milliseconds times the current index 'i'.
+    }
+  }
 
   animateAlgorithm(
     visitedNodesInOrder,
     algorithm,
     nodesInShortestPathOrder = visitedNodesInOrder
   ) {
+    // Check if an animation is already running, and if so, return.
     if (this.state.animationIsRunning) return;
+
+    // Determine animation speed based on the selected speed settings.
     let speed =
       this.state.speed === "fast"
         ? 10
@@ -165,6 +183,8 @@ export default class PathfindingVisualizer extends Component {
         : this.state.speed === "slow"
         ? 350
         : 10;
+
+    // Clear the board of previous path markings and set animationIsRunning to true.
     this.setState({
       grid: clearBoard(
         this.state.grid,
@@ -174,32 +194,42 @@ export default class PathfindingVisualizer extends Component {
       ),
       animationIsRunning: true,
     });
+
+    // Iterate through visited nodes and animate them.
     for (let i = 0; i <= visitedNodesInOrder.length; i++) {
-      // After all visited nodes have been animated, animate the shortest path
+      // After all visited nodes have been animated, animate the shortest path.
       if (i === visitedNodesInOrder.length) {
+        // Check if animation completion flags indicate it's not completed or it's a different algorithm.
         if (
           this.state.animationIsCompleted[0] === false ||
           this.state.animationIsCompleted[1] !== algorithm
         ) {
+          // Schedule animation of the shortest path with a delay based on speed.
           setTimeout(() => {
             this.animateShortestPath(nodesInShortestPathOrder, algorithm);
           }, speed * i);
         } else {
+          // Animate the shortest path immediately.
           this.animateShortestPath(nodesInShortestPathOrder, algorithm);
         }
         return;
       }
-      // Animate each visited node
+
+      // Animate each visited node.
       const node = visitedNodesInOrder[i];
       const nodeRef = this.nodeRefs[node.row][node.col].current;
+
+      // Check animation completion flags to determine the animation behavior.
       if (
         this.state.animationIsCompleted[0] === false ||
         this.state.animationIsCompleted[1] !== algorithm
       ) {
+        // Schedule animation of visited node with a delay based on speed.
         setTimeout(() => {
           nodeRef.classList.add("node-visited");
         }, speed * i);
       } else {
+        // If animation is already completed, apply a different CSS class for the visited node.
         nodeRef.classList.add("node-visited-not-animated");
       }
     }
@@ -357,16 +387,18 @@ export default class PathfindingVisualizer extends Component {
                   Mazes & Patterns
                 </Dropdown.Toggle>
                 <Dropdown.Menu>
-                  <Dropdown.Item
-                  // onClick={() => {
-                  // }}
-                  >
+                  <Dropdown.Item onClick={() => this.visualizeStairPattern()}>
                     Simple stair pattern
                   </Dropdown.Item>
                   <Dropdown.Item
                   // onClick={() => this.setState({ chosenAnimation: "astar" })}
                   >
                     Recursive division
+                  </Dropdown.Item>
+                  <Dropdown.Item
+                  // onClick={() => this.setState({ chosenAnimation: "astar" })}
+                  >
+                    Basic Random Maze
                   </Dropdown.Item>
                 </Dropdown.Menu>
               </Dropdown>
@@ -598,9 +630,9 @@ const clearBoard = (oldGrid, object, animationIsRunning, nodeRefs) => {
     // grid = getInitialGrid();
     // Resetting the startNode
     START_NODE_COL = 16;
-    START_NODE_ROW = 12;
+    START_NODE_ROW = 11;
     // Resetting the finishNode
-    FINISH_NODE_ROW = 12;
+    FINISH_NODE_ROW = 11;
     FINISH_NODE_COL = 45;
   }
   // Loop through rows
