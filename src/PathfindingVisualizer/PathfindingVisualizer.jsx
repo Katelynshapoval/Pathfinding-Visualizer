@@ -150,10 +150,27 @@ export default class PathfindingVisualizer extends Component {
     // Trigger the animation of the algorithm, passing the visited nodes and algorithm type.
     this.animateAlgorithm(visitedNodesInOrder, "astar");
   }
-  async visualizeStairPattern(maze) {
+  async visualizePattern(maze) {
     // Get the current state of the grid
+    await this.setState({
+      grid: clearBoard(
+        this.state.grid,
+        "walls",
+        this.state.animationIsRunning,
+        this.nodeRefs
+      ),
+      animationIsRunning: true,
+    });
     const { grid } = this.state;
-
+    // Speed of animation
+    let speed =
+      this.state.speed === "fast"
+        ? 10
+        : this.state.speed === "average"
+        ? 80
+        : this.state.speed === "slow"
+        ? 350
+        : 10;
     // Obtain the walls in the staircase pattern by calling the 'stairPattern' or 'recursiveDivisionMaze' function.
     // Depending on the 'maze' parameter.
     let walls =
@@ -193,7 +210,7 @@ export default class PathfindingVisualizer extends Component {
 
           // Call the onAnimationComplete function after each animation
           onAnimationComplete();
-        }, 20 * i);
+        }, speed * i);
       });
     });
 
@@ -201,7 +218,7 @@ export default class PathfindingVisualizer extends Component {
     await animationPromise;
 
     // Update the state after animations are complete
-    this.setState({ grid: grid });
+    this.setState({ grid: grid, animationIsRunning: false });
   }
 
   animateAlgorithm(
@@ -401,20 +418,25 @@ export default class PathfindingVisualizer extends Component {
                 <Dropdown.Menu>
                   <Dropdown.Item
                     onClick={() => {
+                      if (animationIsRunning) return;
                       this.setState({ chosenAnimation: "dijkstra" });
                     }}
                   >
                     Dijkstra's Algorithm
                   </Dropdown.Item>
                   <Dropdown.Item
-                    onClick={() => this.setState({ chosenAnimation: "astar" })}
+                    onClick={() => {
+                      if (animationIsRunning) return;
+                      this.setState({ chosenAnimation: "astar" });
+                    }}
                   >
                     A* Search
                   </Dropdown.Item>
                   <Dropdown.Item
-                    onClick={() =>
-                      this.setState({ chosenAnimation: "bidirectional" })
-                    }
+                    onClick={() => {
+                      if (animationIsRunning) return;
+                      this.setState({ chosenAnimation: "bidirectional" });
+                    }}
                   >
                     Bidirectional Swarm Algorithm
                   </Dropdown.Item>
@@ -427,7 +449,8 @@ export default class PathfindingVisualizer extends Component {
                 <Dropdown.Menu>
                   <Dropdown.Item
                     onClick={() => {
-                      this.visualizeStairPattern("stairs");
+                      if (animationIsRunning) return;
+                      this.visualizePattern("stairs");
                     }}
                     // onClick={() => {
                     //   this.setState({
@@ -438,12 +461,15 @@ export default class PathfindingVisualizer extends Component {
                     Simple stair pattern
                   </Dropdown.Item>
                   <Dropdown.Item
-                    onClick={() => this.visualizeStairPattern("recursive")}
+                    onClick={() => {
+                      if (animationIsRunning) return;
+                      this.visualizePattern("recursive");
+                    }}
                   >
                     Recursive division
                   </Dropdown.Item>
                   <Dropdown.Item
-                  // onClick={() => this.setState({ chosenAnimation: "astar" })}
+                  // onClick={() => {if (animationIsRunning) return; this.setState({ chosenAnimation: "astar" })}}
                   >
                     Basic Random Maze
                   </Dropdown.Item>
@@ -455,6 +481,7 @@ export default class PathfindingVisualizer extends Component {
                 type="button"
                 className="button visualize"
                 onClick={() => {
+                  if (animationIsRunning) return;
                   this.setState(
                     { animationIsCompleted: [false, ""] },
                     function () {
@@ -476,6 +503,7 @@ export default class PathfindingVisualizer extends Component {
               <button
                 className="button"
                 onClick={() => {
+                  if (animationIsRunning) return;
                   this.setState({
                     grid: clearBoard(
                       grid,
@@ -485,7 +513,6 @@ export default class PathfindingVisualizer extends Component {
                     ),
                     animationIsCompleted: [false, ""],
                   });
-                  // this.setState({  });
                 }}
               >
                 Clear Board
@@ -494,6 +521,7 @@ export default class PathfindingVisualizer extends Component {
               <button
                 className="button"
                 onClick={() => {
+                  if (animationIsRunning) return;
                   this.setState({
                     grid: clearBoard(
                       grid,
@@ -511,6 +539,7 @@ export default class PathfindingVisualizer extends Component {
               <button
                 className="button"
                 onClick={() => {
+                  if (animationIsRunning) return;
                   this.setState({
                     grid: clearBoard(
                       grid,
@@ -696,6 +725,10 @@ const clearBoard = (oldGrid, object, animationIsRunning, nodeRefs) => {
         grid[row][col] = createNode(row, col);
       } else if (object === "board") {
         grid[row][col] = createNode(row, col);
+      }
+      if (row === FINISH_NODE_ROW && col === FINISH_NODE_COL) {
+        const nodeRef = nodeRefs[row][col].current;
+        nodeRef.className = "node node-finish";
       }
       // Remove visual classes from the corresponding DOM element representing the node.
       nodeRef.classList.remove("node-visited");
