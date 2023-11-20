@@ -7,6 +7,7 @@ import Dropdown from "react-bootstrap/Dropdown";
 import { ReactComponent as Arrowright } from "./Node/arrow-right.svg";
 import { ReactComponent as FinishNode } from "./Node/circle.svg";
 import { stairPattern } from "../mazeAlgorithms/stairPattern";
+import { recursiveDivisionMaze } from "../mazeAlgorithms/recursiveDivision";
 
 let START_NODE_COL = 16;
 let FINISH_NODE_ROW = 11;
@@ -144,26 +145,63 @@ export default class PathfindingVisualizer extends Component {
 
     // Run the A* algorithm to find the visited nodes in order.
     const visitedNodesInOrder = astar(grid, startNode, finishNode);
+    // const visitedNodesInOrder = [];
 
     // Trigger the animation of the algorithm, passing the visited nodes and algorithm type.
     this.animateAlgorithm(visitedNodesInOrder, "astar");
   }
-  visualizeStairPattern() {
-    // Obtain the walls in the staircase pattern by calling the 'stairPattern' function.
-    let walls = stairPattern(this.state.grid);
+  async visualizeStairPattern(maze) {
+    // Get the current state of the grid
+    const { grid } = this.state;
 
-    // Iterate through the 'walls' array to visualize each wall element with a delay.
-    for (let i = 0; i < walls.length; i++) {
-      let wall = walls[i];
+    // Obtain the walls in the staircase pattern by calling the 'stairPattern' or 'recursiveDivisionMaze' function.
+    // Depending on the 'maze' parameter.
+    let walls =
+      maze === "stairs"
+        ? stairPattern(grid)
+        : maze === "recursive"
+        ? recursiveDivisionMaze(grid, 0, 22, 0, 58, "h", [], [])
+        : [];
 
-      // Get a reference to the DOM element representing the current wall in the grid.
-      const wallRef = this.nodeRefs[wall.row][wall.col].current;
+    // Create a Promise to wait for the animations to complete
+    const animationPromise = new Promise((resolve) => {
+      let animationCount = 0;
 
-      // Use setTimeout to add a CSS class to the wall element with a delay.
-      setTimeout(() => {
-        wallRef.classList.add("node-wall");
-      }, 20 * i); // The delay is 20 milliseconds times the current index 'i'.
-    }
+      // Function to be called after each animation is complete
+      const onAnimationComplete = () => {
+        animationCount++;
+        if (animationCount === walls.length) {
+          // Resolve the promise when all animations are complete
+          resolve();
+        }
+      };
+
+      // Iterate through the 'walls' array to visualize each wall element with a delay.
+      walls.forEach((wall, i) => {
+        const wallRef = this.nodeRefs[wall.row][wall.col].current;
+
+        // Set a timeout for each animation, with a delay proportional to the index 'i'
+        setTimeout(() => {
+          if (
+            // Check if the current wall is not the start or finish node
+            !(wall.row === START_NODE_ROW && wall.col === START_NODE_COL) &&
+            !(wall.row === FINISH_NODE_ROW && wall.col === FINISH_NODE_COL)
+          ) {
+            // Add the 'node-wall' class to visually represent a wall
+            wallRef.classList.add("node-wall");
+          }
+
+          // Call the onAnimationComplete function after each animation
+          onAnimationComplete();
+        }, 20 * i);
+      });
+    });
+
+    // Wait for the animations to complete before updating the state
+    await animationPromise;
+
+    // Update the state after animations are complete
+    this.setState({ grid: grid });
   }
 
   animateAlgorithm(
@@ -387,11 +425,20 @@ export default class PathfindingVisualizer extends Component {
                   Mazes & Patterns
                 </Dropdown.Toggle>
                 <Dropdown.Menu>
-                  <Dropdown.Item onClick={() => this.visualizeStairPattern()}>
+                  <Dropdown.Item
+                    onClick={() => {
+                      this.visualizeStairPattern("stairs");
+                    }}
+                    // onClick={() => {
+                    //   this.setState({
+                    //     grid: this.visualizeStairPattern("stairs"),
+                    //   });
+                    // }}
+                  >
                     Simple stair pattern
                   </Dropdown.Item>
                   <Dropdown.Item
-                  // onClick={() => this.setState({ chosenAnimation: "astar" })}
+                    onClick={() => this.visualizeStairPattern("recursive")}
                   >
                     Recursive division
                   </Dropdown.Item>
