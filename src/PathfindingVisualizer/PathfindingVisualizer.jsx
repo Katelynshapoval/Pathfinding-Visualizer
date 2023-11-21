@@ -8,6 +8,7 @@ import { ReactComponent as Arrowright } from "./Node/arrow-right.svg";
 import { ReactComponent as FinishNode } from "./Node/circle.svg";
 import { stairPattern } from "../mazeAlgorithms/stairPattern";
 import { recursiveDivisionMaze } from "../mazeAlgorithms/recursiveDivision";
+import { basicRandomMaze } from "../mazeAlgorithms/BasicRandomMaze";
 
 let START_NODE_COL = 16;
 let FINISH_NODE_ROW = 11;
@@ -165,11 +166,11 @@ export default class PathfindingVisualizer extends Component {
     // Speed of animation
     let speed =
       this.state.speed === "fast"
-        ? 10
+        ? 6
         : this.state.speed === "average"
-        ? 80
+        ? 60
         : this.state.speed === "slow"
-        ? 350
+        ? 320
         : 10;
     // Obtain the walls in the staircase pattern by calling the 'stairPattern' or 'recursiveDivisionMaze' function.
     // Depending on the 'maze' parameter.
@@ -178,6 +179,8 @@ export default class PathfindingVisualizer extends Component {
         ? stairPattern(grid)
         : maze === "recursive"
         ? recursiveDivisionMaze(grid, 0, 22, 0, 58, "h", [], [])
+        : maze === "basic"
+        ? basicRandomMaze(grid)
         : [];
 
     // Create a Promise to wait for the animations to complete
@@ -452,11 +455,6 @@ export default class PathfindingVisualizer extends Component {
                       if (animationIsRunning) return;
                       this.visualizePattern("stairs");
                     }}
-                    // onClick={() => {
-                    //   this.setState({
-                    //     grid: this.visualizeStairPattern("stairs"),
-                    //   });
-                    // }}
                   >
                     Simple stair pattern
                   </Dropdown.Item>
@@ -469,7 +467,10 @@ export default class PathfindingVisualizer extends Component {
                     Recursive division
                   </Dropdown.Item>
                   <Dropdown.Item
-                  // onClick={() => {if (animationIsRunning) return; this.setState({ chosenAnimation: "astar" })}}
+                    onClick={() => {
+                      if (animationIsRunning) return;
+                      this.visualizePattern("basic");
+                    }}
                   >
                     Basic Random Maze
                   </Dropdown.Item>
@@ -568,17 +569,26 @@ export default class PathfindingVisualizer extends Component {
               <Dropdown.Menu>
                 <Dropdown.Item
                   onClick={() => {
+                    if (animationIsRunning) return;
                     this.setState({ speed: "fast" });
                   }}
                 >
                   Fast
                 </Dropdown.Item>
                 <Dropdown.Item
-                  onClick={() => this.setState({ speed: "average" })}
+                  onClick={() => {
+                    if (animationIsRunning) return;
+                    this.setState({ speed: "average" });
+                  }}
                 >
                   Average
                 </Dropdown.Item>
-                <Dropdown.Item onClick={() => this.setState({ speed: "slow" })}>
+                <Dropdown.Item
+                  onClick={() => {
+                    if (animationIsRunning) return;
+                    this.setState({ speed: "slow" });
+                  }}
+                >
                   Slow
                 </Dropdown.Item>
               </Dropdown.Menu>
