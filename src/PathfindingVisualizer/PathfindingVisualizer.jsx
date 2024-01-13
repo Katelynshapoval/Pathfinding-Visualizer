@@ -151,6 +151,7 @@ export default class PathfindingVisualizer extends Component {
     // Trigger the animation of the algorithm, passing the visited nodes and algorithm type.
     this.animateAlgorithm(visitedNodesInOrder, "astar");
   }
+  // Visualize the BidirectionalSearch algorithm on the grid
   async visualizePattern(maze) {
     // Get the current state of the grid
     await this.setState({
@@ -414,8 +415,6 @@ export default class PathfindingVisualizer extends Component {
                     ? "Dijkstra's Algorithm"
                     : chosenAnimation === "astar"
                     ? "A* Search"
-                    : chosenAnimation === "bidirectional"
-                    ? "Bidirectional Swarm Algorithm"
                     : "Algorithm"}
                 </Dropdown.Toggle>
                 <Dropdown.Menu>
@@ -434,14 +433,6 @@ export default class PathfindingVisualizer extends Component {
                     }}
                   >
                     A* Search
-                  </Dropdown.Item>
-                  <Dropdown.Item
-                    onClick={() => {
-                      if (animationIsRunning) return;
-                      this.setState({ chosenAnimation: "bidirectional" });
-                    }}
-                  >
-                    Bidirectional Swarm Algorithm
                   </Dropdown.Item>
                 </Dropdown.Menu>
               </Dropdown>
